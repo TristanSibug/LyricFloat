@@ -7,7 +7,7 @@ import UIKit
 @MainActor
 final class OverlayModel: ObservableObject {
     let player = FloatingPlayer()
-    let catalog = LyricsCatalog()
+    private let catalog = LyricsCatalog()
     private let spotify = Spotify()
 
     @Published private var lyrics: Lyrics?
@@ -15,13 +15,11 @@ final class OverlayModel: ObservableObject {
     @Published private(set) var artist: String?
     @Published private(set) var duration: TimeInterval = 0
     @Published private(set) var position: TimeInterval = 0
-    @Published private(set) var isPlaying = false
-    @Published private(set) var currentLine = "Choose a song"
+    @Published private(set) var currentLine = "Connect Spotify to see lyrics"
     @Published private(set) var adjustment: TimeInterval = 0
 
     @Published private(set) var isSpotifyConnected = false
     @Published private(set) var isConnectingSpotify = false
-    @Published private(set) var followsSpotify = false
     @Published private(set) var spotifyStatus: String?
 
     var canConnectSpotify: Bool { spotify.clientID != nil }
@@ -35,7 +33,7 @@ final class OverlayModel: ObservableObject {
     private var spotifyDisplayMessage = "Looking for Spotify playback…"
     private var nextLyricsAttempt: Date?
     private var spotifyRetryAfter = Date.distantPast
-    private var manualSong: LyricsCatalog.Song?
+    private var theme = LyricTheme.defaultTheme
 
     private var timer: Timer?
     private var clockPosition: TimeInterval = 0
@@ -44,20 +42,12 @@ final class OverlayModel: ObservableObject {
     private var lastRenderedAt: TimeInterval = 0
 
     init() {
-        player.onSetPlaying = { [weak self] playing in
-            guard let self, !self.followsSpotify else { return }
-            if playing {
-                self.play()
-            } else {
-                self.pause()
-            }
-        }
         pictureInPictureObservation = player.$isActive.dropFirst().sink { [weak self] _ in
             Task { @MainActor [weak self] in self?.startPollingIfNeeded() }
         }
         isSpotifyConnected = spotify.isConnected
         spotifyStatus = spotify.startupError
-        if isSpotifyConnected { followSpotify() }
+        if isSpotifyConnected { prepareSpotifyTimeline() }
     }
 
     func setSceneActive(_ active: Bool) {
@@ -73,34 +63,10 @@ final class OverlayModel: ObservableObject {
         self.timer = timer
     }
 
-    func selectSong(_ song: LyricsCatalog.Song) {
-        manualSong = song
-        stopFollowingSpotify()
-        showManualSelection()
-    }
-
-    private func showManualSelection() {
-        lyrics = manualSong?.lyrics
-        title = manualSong?.title
-        artist = manualSong?.artist
-        duration = manualSong.map { max($0.duration, $0.lyrics.cues.last?.time ?? 0) } ?? 0
-        adjustment = 0
-        setClock(position: 0, playing: false)
-    }
-
-    func play() {
-        guard !followsSpotify, hasLyrics else { return }
-        setClock(position: position >= duration ? 0 : position, playing: true)
-    }
-
-    func pause() {
-        guard !followsSpotify, hasLyrics else { return }
-        setClock(position: currentPosition(), playing: false)
-    }
-
-    func seek(to time: TimeInterval) {
-        guard !followsSpotify, hasLyrics else { return }
-        setClock(position: time, playing: startedAt != nil)
+    func applyTheme(_ theme: LyricTheme) {
+        guard self.theme != theme else { return }
+        self.theme = theme
+        update(forceFrame: true)
     }
 
     func adjust(to time: TimeInterval) {
@@ -125,7 +91,7 @@ final class OverlayModel: ObservableObject {
         do {
             try await spotify.connect(window: window)
             isSpotifyConnected = true
-            followSpotify()
+            prepareSpotifyTimeline()
         } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
             spotifyStatus = nil
         } catch {
@@ -133,9 +99,7 @@ final class OverlayModel: ObservableObject {
         }
     }
 
-    func followSpotify() {
-        guard isSpotifyConnected, !followsSpotify else { return }
-        followsSpotify = true
+    private func prepareSpotifyTimeline() {
         lyrics = nil
         title = nil
         artist = nil
@@ -154,10 +118,8 @@ final class OverlayModel: ObservableObject {
             spotifyPoll?.cancel()
             spotifyPoll = nil
             spotifyRetryAfter = .distantPast
-            if followsSpotify {
-                stopFollowingSpotify()
-                showManualSelection()
-            }
+            setSpotifyTrack(nil)
+            setClock(position: 0, playing: false)
             spotifyStatus = nil
         } catch {
             spotifyStatus = error.localizedDescription
@@ -165,7 +127,7 @@ final class OverlayModel: ObservableObject {
     }
 
     private var shouldPoll: Bool {
-        followsSpotify && (foreground || player.isActive || player.isStarting)
+        isSpotifyConnected && (foreground || player.isActive || player.isStarting)
     }
 
     private func startPollingIfNeeded() {
@@ -228,16 +190,6 @@ final class OverlayModel: ObservableObject {
         }
     }
 
-    private func stopFollowingSpotify() {
-        guard followsSpotify else { return }
-        followsSpotify = false
-        lyricsLookup?.cancel()
-        lyricsLookup = nil
-        spotifyTrack = nil
-        nextLyricsAttempt = nil
-        spotifyStatus = nil
-    }
-
     private func setSpotifyTrack(_ track: SpotifyTrack?) {
         lyricsLookup?.cancel()
         lyricsLookup = nil
@@ -260,14 +212,14 @@ final class OverlayModel: ObservableObject {
                 let lyrics = try await catalog.match(title: track.title, artist: track.artist,
                                                      album: track.album, duration: track.duration)
                 try Task.checkCancellation()
-                guard let self, self.followsSpotify, self.spotifyTrack?.id == track.id else { return }
+                guard let self, self.isSpotifyConnected, self.spotifyTrack?.id == track.id else { return }
                 self.lyrics = lyrics
                 self.spotifyDisplayMessage = lyrics == nil ? "No timed lyrics found" : ""
                 self.nextLyricsAttempt = nil
                 self.lyricsLookup = nil
                 self.update(forceFrame: true)
             } catch {
-                guard !Task.isCancelled, let self, self.followsSpotify, self.spotifyTrack?.id == track.id else { return }
+                guard !Task.isCancelled, let self, self.isSpotifyConnected, self.spotifyTrack?.id == track.id else { return }
                 self.spotifyDisplayMessage = "The lyrics service will retry shortly"
                 self.nextLyricsAttempt = Date().addingTimeInterval(25)
                 self.lyricsLookup = nil
@@ -295,13 +247,12 @@ final class OverlayModel: ObservableObject {
         }
         let position = min(elapsed, duration)
         if self.position != position { self.position = position }
-        let running = startedAt != nil
-        if isPlaying != running { isPlaying = running }
-        player.setPaused(!running)
+        player.setPaused(startedAt == nil)
 
         guard let lyrics else {
-            render(current: followsSpotify ? spotifyDisplayMessage : "Choose a song",
-                   next: nil, at: now, forceFrame: forceFrame)
+            let message = isSpotifyConnected ? spotifyDisplayMessage
+                : (canConnectSpotify ? "Connect Spotify to see lyrics" : "Spotify is unavailable in this build")
+            render(current: message, next: nil, at: now, forceFrame: forceFrame)
             return
         }
 
@@ -326,7 +277,7 @@ final class OverlayModel: ObservableObject {
         let changed = displayedFrame?.current != current || displayedFrame?.next != next
         let refresh = now - lastRenderedAt >= 1 && (player.isActive || player.isStarting)
         if forceFrame || changed || refresh {
-            player.render(current: current, next: next)
+            player.render(current: current, next: next, theme: theme)
             displayedFrame = (current, next)
             lastRenderedAt = now
         }

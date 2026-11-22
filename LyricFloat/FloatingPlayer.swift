@@ -18,10 +18,7 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
     let displayLayer = AVSampleBufferDisplayLayer()
     let isSupported = AVPictureInPictureController.isPictureInPictureSupported()
 
-    var onSetPlaying: ((Bool) -> Void)?
-
     private static let frameSize = CGSize(width: 720, height: 320)
-    static let panelColor = UIColor(red: 0.16, green: 0.10, blue: 0.18, alpha: 1)
     private var controller: AVPictureInPictureController?
     private var possibilityObservation: NSKeyValueObservation?
     private nonisolated let playbackPaused = OSAllocatedUnfairLock(initialState: true)
@@ -79,13 +76,13 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
         if changed { controller?.invalidatePlaybackState() }
     }
 
-    func render(current: String, next: String?) {
-        guard let buffer = Self.makeFrame(current: current, next: next) else { return }
+    func render(current: String, next: String?, theme: LyricTheme) {
+        guard let buffer = Self.makeFrame(current: current, next: next, theme: theme) else { return }
         if displayLayer.status == .failed { displayLayer.flush() }
         displayLayer.enqueue(buffer)
     }
 
-    private static func makeFrame(current: String, next: String?) -> CMSampleBuffer? {
+    private static func makeFrame(current: String, next: String?, theme: LyricTheme) -> CMSampleBuffer? {
         let width = Int(frameSize.width)
         let height = Int(frameSize.height)
         let attributes: [String: Any] = [
@@ -111,16 +108,17 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
         UIGraphicsPushContext(context)
         defer { UIGraphicsPopContext() }
 
-        panelColor.setFill()
+        theme.panelColor.setFill()
         context.fill(CGRect(origin: .zero, size: frameSize))
 
         let textWidth = frameSize.width - 104
         let currentLine = fittedLine(current, width: textWidth, maxHeight: 148,
-                                     maxSize: 55, minSize: 27, weight: .semibold, color: .white)
+                                     maxSize: 55, minSize: 27, weight: .semibold,
+                                     color: UIColor(lyricHex: theme.text))
         let nextLine = next.flatMap { text in
             text.isEmpty ? nil : fittedLine(text, width: textWidth, maxHeight: 70,
                                             maxSize: 32, minSize: 19, weight: .medium,
-                                            color: UIColor(red: 0.83, green: 0.77, blue: 0.87, alpha: 1))
+                                            color: UIColor(lyricHex: theme.muted))
         }
         let gap: CGFloat = nextLine == nil ? 0 : 18
         let contentHeight = currentLine.height + gap + (nextLine?.height ?? 0)
@@ -235,7 +233,7 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
         _ pictureInPictureController: AVPictureInPictureController,
         setPlaying playing: Bool
     ) {
-        Task { @MainActor [weak self] in self?.onSetPlaying?(playing) }
+        // The overlay follows Spotify's read-only playback state.
     }
 
     nonisolated func pictureInPictureControllerTimeRangeForPlayback(
@@ -266,12 +264,17 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
 
 struct LyricsPreview: UIViewRepresentable {
     let player: FloatingPlayer
+    let theme: LyricTheme
 
     func makeUIView(context: Context) -> PreviewView {
-        PreviewView(displayLayer: player.displayLayer)
+        let view = PreviewView(displayLayer: player.displayLayer)
+        view.backgroundColor = theme.panelColor
+        return view
     }
 
-    func updateUIView(_ uiView: PreviewView, context: Context) {}
+    func updateUIView(_ uiView: PreviewView, context: Context) {
+        uiView.backgroundColor = theme.panelColor
+    }
 
     final class PreviewView: UIView {
         private let displayLayer: AVSampleBufferDisplayLayer
@@ -279,7 +282,6 @@ struct LyricsPreview: UIViewRepresentable {
         init(displayLayer: AVSampleBufferDisplayLayer) {
             self.displayLayer = displayLayer
             super.init(frame: .zero)
-            backgroundColor = FloatingPlayer.panelColor
             layer.addSublayer(displayLayer)
         }
 
