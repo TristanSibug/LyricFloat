@@ -10,7 +10,7 @@ Download the IPA from the release notes and sign it with your sideloading tool. 
 2. Start a song in Spotify and open Lyric Float. It reads the current track and playback time, looks up timed lyrics through LRCLIB, and follows pauses, seeks, and track changes. Updates can lag by a few seconds.
 3. Tap **Float lyrics** to keep the lines visible while using another app. Use **Options → Disconnect Spotify** to remove the saved connection.
 
-Open **Options → Timing adjustment** to fine-tune when the lyrics appear. **Options → Theme** has the LunkAlarm palettes, with **Sunrise** selected on first launch. The chosen theme is saved and applies to the app and floating window.
+Open **Options → Timing adjustment** to fine-tune when the lyrics appear. **Options → Theme** has 19 LunkAlarm palettes, with **Sunrise** selected on first launch. Choosing a theme updates the app, floating window, and Home Screen icon. iOS displays a notice when the icon changes.
 
 ## Configure a build
 

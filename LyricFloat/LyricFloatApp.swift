@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 @main
 @MainActor
@@ -200,40 +201,52 @@ private struct ThemedButtonStyle: ButtonStyle {
     }
 }
 
+@MainActor
 private struct ThemePickerView: View {
     @Binding var themeID: String
     @Environment(\.dismiss) private var dismiss
+    @State private var isChangingIcon = false
+    @State private var iconMessage: String?
 
     private var selected: LyricTheme { LyricTheme.find(themeID) }
 
     var body: some View {
         NavigationStack {
-            List(LyricTheme.all) { theme in
-                Button {
-                    themeID = theme.id
-                } label: {
-                    HStack(spacing: 12) {
-                        HStack(spacing: 3) {
-                            swatch(theme.surface)
-                            swatch(theme.highlight)
-                            swatch(theme.highlight2)
-                        }
-                        .accessibilityHidden(true)
-                        Text(theme.name)
-                            .foregroundStyle(selected.foreground)
-                        Spacer()
-                        if selected.id == theme.id {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(selected.highlight)
+            List {
+                Section {
+                    ForEach(LyricTheme.all) { theme in
+                        Button {
+                            select(theme)
+                        } label: {
+                            HStack(spacing: 12) {
+                                HStack(spacing: 3) {
+                                    swatch(theme.surface)
+                                    swatch(theme.highlight)
+                                    swatch(theme.highlight2)
+                                }
                                 .accessibilityHidden(true)
+                                Text(theme.name)
+                                    .foregroundStyle(selected.foreground)
+                                Spacer()
+                                if selected.id == theme.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(selected.highlight)
+                                        .accessibilityHidden(true)
+                                }
+                            }
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(selected.id == theme.id ? .isSelected : [])
+                        .listRowBackground(selected.surface)
+                        .disabled(isChangingIcon)
                     }
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
+                } header: {
+                    Text(iconMessage ?? "Choose a theme to match your Home Screen icon.")
+                        .foregroundStyle(selected.secondary)
+                        .textCase(nil)
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selected.id == theme.id ? .isSelected : [])
-                .listRowBackground(selected.surface)
             }
             .scrollContentBackground(.hidden)
             .background(selected.backdrop.ignoresSafeArea())
@@ -242,11 +255,37 @@ private struct ThemePickerView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .disabled(isChangingIcon)
                 }
             }
         }
         .tint(selected.highlight)
         .preferredColorScheme(selected.colorScheme)
+        .interactiveDismissDisabled(isChangingIcon)
+    }
+
+    private func select(_ theme: LyricTheme) {
+        guard !isChangingIcon else { return }
+        themeID = theme.id
+        iconMessage = nil
+
+        let app = UIApplication.shared
+        let iconName = theme.alternateIconName
+        guard app.alternateIconName != iconName else { return }
+        guard app.supportsAlternateIcons else {
+            iconMessage = "Home Screen icon changes are unavailable in this build."
+            return
+        }
+
+        isChangingIcon = true
+        Task {
+            defer { isChangingIcon = false }
+            do {
+                try await app.setAlternateIconName(iconName)
+            } catch {
+                iconMessage = "Couldn’t change the Home Screen icon. Tap the theme to try again."
+            }
+        }
     }
 
     private func swatch(_ color: Color) -> some View {

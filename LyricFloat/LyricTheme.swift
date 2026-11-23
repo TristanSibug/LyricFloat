@@ -21,6 +21,7 @@ struct LyricTheme: Identifiable, Equatable, Sendable {
     var onAccent: Color { Color(uiColor: UIColor(lyricHex: isLight ? 0xffffff : 0x160f12)) }
     var panelColor: UIColor { UIColor(lyricHex: card) }
     var colorScheme: ColorScheme { isLight ? .light : .dark }
+    var alternateIconName: String? { id == Self.defaultID ? nil : "AppIcon-\(id)" }
 
     static let defaultID = "sunrise"
     static var defaultTheme: LyricTheme { all[0] }
