@@ -57,6 +57,7 @@
                 1A2B3C4D0000000000000015,
                 1A2B3C4D0000000000000019,
                 1A2B3C4D000000000000001A,
+                1A2B3C4D000000000000001B,
             );
             path = LyricFloat;
             sourceTree = "<group>";
@@ -91,7 +92,7 @@
         1A2B3C4D0000000000000008 = {
             isa = PBXResourcesBuildPhase;
             buildActionMask = 2147483647;
-            files = ();
+            files = (1A2B3C4D0000000000000029);
             runOnlyForDeploymentPostprocessing = 0;
         };
         1A2B3C4D0000000000000009 = {
@@ -159,6 +160,7 @@
         1A2B3C4D0000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCatalog.swift; sourceTree = "<group>"; };
         1A2B3C4D0000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthorizationResponse.swift; sourceTree = "<group>"; };
         1A2B3C4D000000000000001A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricTheme.swift; sourceTree = "<group>"; };
+        1A2B3C4D000000000000001B = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
         1A2B3C4D0000000000000021 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000011; };
         1A2B3C4D0000000000000022 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000012; };
         1A2B3C4D0000000000000023 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000013; };
@@ -167,6 +169,7 @@
         1A2B3C4D0000000000000026 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000018; };
         1A2B3C4D0000000000000027 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000019; };
         1A2B3C4D0000000000000028 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001A; };
+        1A2B3C4D0000000000000029 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001B; };
     };
     rootObject = 1A2B3C4D0000000000000001;
 }
