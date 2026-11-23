@@ -76,13 +76,14 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
         if changed { controller?.invalidatePlaybackState() }
     }
 
-    func render(current: String, next: String?, theme: LyricTheme) {
-        guard let buffer = Self.makeFrame(current: current, next: next, theme: theme) else { return }
+    func render(current: String, next: String?, theme: LyricTheme, lyricFont: LyricFont) {
+        guard let buffer = Self.makeFrame(current: current, next: next, theme: theme, lyricFont: lyricFont) else { return }
         if displayLayer.status == .failed { displayLayer.flush() }
         displayLayer.enqueue(buffer)
     }
 
-    private static func makeFrame(current: String, next: String?, theme: LyricTheme) -> CMSampleBuffer? {
+    private static func makeFrame(current: String, next: String?, theme: LyricTheme,
+                                  lyricFont: LyricFont) -> CMSampleBuffer? {
         let width = Int(frameSize.width)
         let height = Int(frameSize.height)
         let attributes: [String: Any] = [
@@ -113,11 +114,11 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
 
         let textWidth = frameSize.width - 104
         let currentLine = fittedLine(current, width: textWidth, maxHeight: 148,
-                                     maxSize: 55, minSize: 27, weight: .semibold,
+                                     maxSize: 55, minSize: 27, font: lyricFont, weight: .semibold,
                                      color: UIColor(lyricHex: theme.text))
         let nextLine = next.flatMap { text in
             text.isEmpty ? nil : fittedLine(text, width: textWidth, maxHeight: 70,
-                                            maxSize: 32, minSize: 19, weight: .medium,
+                                            maxSize: 32, minSize: 19, font: lyricFont, weight: .medium,
                                             color: UIColor(lyricHex: theme.muted))
         }
         let gap: CGFloat = nextLine == nil ? 0 : 18
@@ -161,14 +162,14 @@ final class FloatingPlayer: NSObject, ObservableObject, AVPictureInPictureContro
     }
 
     private static func fittedLine(_ text: String, width: CGFloat, maxHeight: CGFloat,
-                                   maxSize: Int, minSize: Int, weight: UIFont.Weight,
+                                   maxSize: Int, minSize: Int, font: LyricFont, weight: UIFont.Weight,
                                    color: UIColor) -> (text: NSAttributedString, height: CGFloat) {
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byWordWrapping
 
         for size in stride(from: maxSize, through: minSize, by: -1) {
             let line = NSAttributedString(string: text, attributes: [
-                .font: UIFont.systemFont(ofSize: CGFloat(size), weight: weight),
+                .font: font.uiFont(size: CGFloat(size), weight: weight),
                 .foregroundColor: color,
                 .paragraphStyle: paragraph
             ])

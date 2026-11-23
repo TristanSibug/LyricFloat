@@ -24,7 +24,8 @@ struct LyricTheme: Identifiable, Equatable, Sendable {
     var alternateIconName: String? { id == Self.defaultID ? nil : "AppIcon-\(id)" }
 
     static let defaultID = "sunrise"
-    static var defaultTheme: LyricTheme { all[0] }
+    static let defaultTheme = LyricTheme(id: defaultID, name: "Sunrise", background: 0x0a0c16, card: 0x171923,
+                                         text: 0xf4f2ff, muted: 0x9a9bb8, accent: 0xffa94d, accent2: 0xff6b7a)
 
     static func find(_ id: String) -> LyricTheme {
         all.first { $0.id == id } ?? defaultTheme
@@ -32,8 +33,6 @@ struct LyricTheme: Identifiable, Equatable, Sendable {
 
     // LunkAlarm's current mobile palettes and the VS Code Blue desktop palette.
     static let all: [LyricTheme] = [
-        LyricTheme(id: "sunrise", name: "Sunrise", background: 0x0a0c16, card: 0x171923,
-                   text: 0xf4f2ff, muted: 0x9a9bb8, accent: 0xffa94d, accent2: 0xff6b7a),
         LyricTheme(id: "light", name: "Light", background: 0xf3f2fa, card: 0xffffff,
                    text: 0x1c1b2e, muted: 0x5b5c76, accent: 0xc4520a, accent2: 0xd6336c, isLight: true),
         LyricTheme(id: "eggshell-white", name: "Eggshell White", background: 0xf7f3e8, card: 0xfffefa,
@@ -48,6 +47,7 @@ struct LyricTheme: Identifiable, Equatable, Sendable {
                    text: 0xf2f2f5, muted: 0x9a9aa3, accent: 0xffa94d, accent2: 0xff6b7a),
         LyricTheme(id: "dark", name: "Dark", background: 0x17181c, card: 0x212329,
                    text: 0xececf1, muted: 0x9a9ba6, accent: 0xffa94d, accent2: 0xff6b7a),
+        defaultTheme,
         LyricTheme(id: "ember", name: "Ember", background: 0x1b1110, card: 0x2b1d1a,
                    text: 0xffeee3, muted: 0xc3a49a, accent: 0xffbb74, accent2: 0xef876d),
         LyricTheme(id: "midnight-cherry", name: "Midnight Cherry", background: 0x260f19, card: 0x3d1c2a,
@@ -58,8 +58,6 @@ struct LyricTheme: Identifiable, Equatable, Sendable {
                    text: 0xeceff4, muted: 0xa4b1c4, accent: 0x88c0d0, accent2: 0x81a1c1),
         LyricTheme(id: "deep-ocean", name: "Deep Ocean", background: 0x081a24, card: 0x102b38,
                    text: 0xe1f5fb, muted: 0x99b9c6, accent: 0x79d2de, accent2: 0x82b0f7),
-        LyricTheme(id: "vscode-blue", name: "VS Code Blue", background: 0x002451, card: 0x003370,
-                   text: 0xe8f0ff, muted: 0xa9c0e6, accent: 0x5db0ff, accent2: 0x3a86ff),
         LyricTheme(id: "cobalt-coral", name: "Cobalt & Coral", background: 0x101c3d, card: 0x1d3057,
                    text: 0xf2f6ff, muted: 0xa8b8d6, accent: 0x92bdff, accent2: 0xff8a85),
         LyricTheme(id: "signal-blue", name: "Signal Blue", background: 0x032d3f, card: 0xbe0d1f,
@@ -70,6 +68,8 @@ struct LyricTheme: Identifiable, Equatable, Sendable {
                    text: 0xf1eaff, muted: 0xb3a3cb, accent: 0xc5a2ff, accent2: 0xf0a4ce),
         LyricTheme(id: "dracula", name: "Dracula", background: 0x282a36, card: 0x303241,
                    text: 0xf8f8f2, muted: 0xa7a5bd, accent: 0xbd93f9, accent2: 0xff79c6),
+        LyricTheme(id: "vscode-blue", name: "VS Code Blue", background: 0x002451, card: 0x003370,
+                   text: 0xe8f0ff, muted: 0xa9c0e6, accent: 0x5db0ff, accent2: 0x3a86ff),
     ]
 }
 

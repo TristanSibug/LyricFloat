@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import UIKit
 
 @main
 @MainActor
@@ -15,12 +14,13 @@ struct LyricFloatApp: App {
 @MainActor
 private struct OverlayView: View {
     private enum Panel: String, Identifiable {
-        case themes, timing
+        case themes, appIcon, font, timing
         var id: String { rawValue }
     }
 
     @StateObject private var model = OverlayModel()
     @AppStorage("lyricFloat.theme") private var themeID = LyricTheme.defaultID
+    @AppStorage("lyricFloat.font") private var lyricFont = LyricFont.system
     @State private var panel: Panel?
     @Environment(\.scenePhase) private var scenePhase
 
@@ -56,10 +56,17 @@ private struct OverlayView: View {
         .onChange(of: themeID, initial: true) { _, id in
             model.applyTheme(LyricTheme.find(id))
         }
+        .onChange(of: lyricFont, initial: true) { _, font in
+            model.applyFont(font)
+        }
         .sheet(item: $panel) { panel in
             switch panel {
             case .themes:
                 ThemePickerView(themeID: $themeID)
+            case .appIcon:
+                AppIconPickerView(theme: theme)
+            case .font:
+                LyricFontPickerView(selection: $lyricFont, theme: theme)
             case .timing:
                 TimingAdjustmentView(model: model, theme: theme)
                     .presentationDetents([.medium, .large])
@@ -75,6 +82,8 @@ private struct OverlayView: View {
             Spacer()
             Menu {
                 Button("Theme", systemImage: "paintpalette") { panel = .themes }
+                Button("App Icon", systemImage: "app") { panel = .appIcon }
+                Button("Font", systemImage: "textformat") { panel = .font }
                 if model.hasLyrics {
                     Button("Timing adjustment", systemImage: "clock") { panel = .timing }
                 }
@@ -198,101 +207,6 @@ private struct ThemedButtonStyle: ButtonStyle {
             )
             .opacity(configuration.isPressed ? 0.75 : 1)
             .opacity(isEnabled ? 1 : 0.45)
-    }
-}
-
-@MainActor
-private struct ThemePickerView: View {
-    @Binding var themeID: String
-    @Environment(\.dismiss) private var dismiss
-    @State private var isChangingIcon = false
-    @State private var iconMessage: String?
-
-    private var selected: LyricTheme { LyricTheme.find(themeID) }
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(LyricTheme.all) { theme in
-                        Button {
-                            select(theme)
-                        } label: {
-                            HStack(spacing: 12) {
-                                HStack(spacing: 3) {
-                                    swatch(theme.surface)
-                                    swatch(theme.highlight)
-                                    swatch(theme.highlight2)
-                                }
-                                .accessibilityHidden(true)
-                                Text(theme.name)
-                                    .foregroundStyle(selected.foreground)
-                                Spacer()
-                                if selected.id == theme.id {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(selected.highlight)
-                                        .accessibilityHidden(true)
-                                }
-                            }
-                            .frame(minHeight: 44)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(selected.id == theme.id ? .isSelected : [])
-                        .listRowBackground(selected.surface)
-                        .disabled(isChangingIcon)
-                    }
-                } header: {
-                    Text(iconMessage ?? "Choose a theme to match your Home Screen icon.")
-                        .foregroundStyle(selected.secondary)
-                        .textCase(nil)
-                }
-            }
-            .scrollContentBackground(.hidden)
-            .background(selected.backdrop.ignoresSafeArea())
-            .navigationTitle("Themes")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                        .disabled(isChangingIcon)
-                }
-            }
-        }
-        .tint(selected.highlight)
-        .preferredColorScheme(selected.colorScheme)
-        .interactiveDismissDisabled(isChangingIcon)
-    }
-
-    private func select(_ theme: LyricTheme) {
-        guard !isChangingIcon else { return }
-        themeID = theme.id
-        iconMessage = nil
-
-        let app = UIApplication.shared
-        let iconName = theme.alternateIconName
-        guard app.alternateIconName != iconName else { return }
-        guard app.supportsAlternateIcons else {
-            iconMessage = "Home Screen icon changes are unavailable in this build."
-            return
-        }
-
-        isChangingIcon = true
-        Task {
-            defer { isChangingIcon = false }
-            do {
-                try await app.setAlternateIconName(iconName)
-            } catch {
-                iconMessage = "Couldn’t change the Home Screen icon. Tap the theme to try again."
-            }
-        }
-    }
-
-    private func swatch(_ color: Color) -> some View {
-        Circle()
-            .fill(color)
-            .frame(width: 14, height: 14)
-            .overlay(Circle().strokeBorder(selected.foreground.opacity(0.18)))
     }
 }
 

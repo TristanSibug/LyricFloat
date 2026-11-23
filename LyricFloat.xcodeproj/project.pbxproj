@@ -58,6 +58,9 @@
                 1A2B3C4D0000000000000019,
                 1A2B3C4D000000000000001A,
                 1A2B3C4D000000000000001B,
+                1A2B3C4D000000000000001C,
+                1A2B3C4D000000000000001D,
+                1A2B3C4D000000000000001E,
             );
             path = LyricFloat;
             sourceTree = "<group>";
@@ -80,6 +83,8 @@
                 1A2B3C4D0000000000000025,
                 1A2B3C4D0000000000000027,
                 1A2B3C4D0000000000000028,
+                1A2B3C4D000000000000002A,
+                1A2B3C4D000000000000002B,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
@@ -92,7 +97,7 @@
         1A2B3C4D0000000000000008 = {
             isa = PBXResourcesBuildPhase;
             buildActionMask = 2147483647;
-            files = (1A2B3C4D0000000000000029);
+            files = (1A2B3C4D0000000000000029, 1A2B3C4D000000000000002C);
             runOnlyForDeploymentPostprocessing = 0;
         };
         1A2B3C4D0000000000000009 = {
@@ -161,6 +166,9 @@
         1A2B3C4D0000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthorizationResponse.swift; sourceTree = "<group>"; };
         1A2B3C4D000000000000001A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricTheme.swift; sourceTree = "<group>"; };
         1A2B3C4D000000000000001B = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+        1A2B3C4D000000000000001C = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearancePickers.swift; sourceTree = "<group>"; };
+        1A2B3C4D000000000000001D = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricFont.swift; sourceTree = "<group>"; };
+        1A2B3C4D000000000000001E = { isa = PBXFileReference; lastKnownFileType = folder; path = IconPreviews; sourceTree = "<group>"; };
         1A2B3C4D0000000000000021 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000011; };
         1A2B3C4D0000000000000022 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000012; };
         1A2B3C4D0000000000000023 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000013; };
@@ -170,6 +178,9 @@
         1A2B3C4D0000000000000027 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000019; };
         1A2B3C4D0000000000000028 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001A; };
         1A2B3C4D0000000000000029 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001B; };
+        1A2B3C4D000000000000002A = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001C; };
+        1A2B3C4D000000000000002B = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001D; };
+        1A2B3C4D000000000000002C = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001E; };
     };
     rootObject = 1A2B3C4D0000000000000001;
 }

@@ -34,6 +34,7 @@ final class OverlayModel: ObservableObject {
     private var nextLyricsAttempt: Date?
     private var spotifyRetryAfter = Date.distantPast
     private var theme = LyricTheme.defaultTheme
+    private var lyricFont = LyricFont.system
 
     private var timer: Timer?
     private var clockPosition: TimeInterval = 0
@@ -66,6 +67,12 @@ final class OverlayModel: ObservableObject {
     func applyTheme(_ theme: LyricTheme) {
         guard self.theme != theme else { return }
         self.theme = theme
+        update(forceFrame: true)
+    }
+
+    func applyFont(_ font: LyricFont) {
+        guard lyricFont != font else { return }
+        lyricFont = font
         update(forceFrame: true)
     }
 
@@ -277,7 +284,7 @@ final class OverlayModel: ObservableObject {
         let changed = displayedFrame?.current != current || displayedFrame?.next != next
         let refresh = now - lastRenderedAt >= 1 && (player.isActive || player.isStarting)
         if forceFrame || changed || refresh {
-            player.render(current: current, next: next, theme: theme)
+            player.render(current: current, next: next, theme: theme, lyricFont: lyricFont)
             displayedFrame = (current, next)
             lastRenderedAt = now
         }
