@@ -49,6 +49,7 @@ private struct OverlayView: View {
         .background(theme.backdrop.ignoresSafeArea())
         .tint(theme.highlight)
         .preferredColorScheme(theme.colorScheme)
+        .onOpenURL { model.handleSpotifyCallback($0) }
         .onAppear { model.setSceneActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             model.setSceneActive(phase == .active)
@@ -76,7 +77,7 @@ private struct OverlayView: View {
 
     private var header: some View {
         HStack {
-            Text("Lyric Float")
+            Text("Lyric Float Remote")
                 .font(.title2.bold())
                 .accessibilityAddTraits(.isHeader)
             Spacer()
@@ -105,7 +106,7 @@ private struct OverlayView: View {
     private var track: some View {
         VStack(alignment: .leading, spacing: 6) {
             if model.isSpotifyConnected {
-                Label(model.hasLyrics && model.spotifyStatus == nil ? "Spotify synced" : "Following Spotify",
+                Label(model.spotifyStatus == nil ? "App Remote connected" : "App Remote interrupted",
                       systemImage: "waveform")
                     .font(.footnote)
                     .foregroundStyle(theme.secondary)

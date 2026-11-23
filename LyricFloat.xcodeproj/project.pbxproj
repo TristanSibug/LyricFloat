@@ -19,6 +19,7 @@
             hasScannedForEncodings = 0;
             knownRegions = (en, Base);
             mainGroup = 1A2B3C4D0000000000000002;
+            packageReferences = (1A2B3C4D0000000000000031);
             productRefGroup = 1A2B3C4D0000000000000005;
             projectDirPath = "";
             projectRoot = "";
@@ -40,6 +41,7 @@
             buildRules = ();
             dependencies = ();
             name = LyricFloat;
+            packageProductDependencies = (1A2B3C4D0000000000000032);
             productName = LyricFloat;
             productReference = 1A2B3C4D0000000000000010;
             productType = "com.apple.product-type.application";
@@ -55,7 +57,6 @@
                 1A2B3C4D0000000000000017,
                 1A2B3C4D0000000000000018,
                 1A2B3C4D0000000000000015,
-                1A2B3C4D0000000000000019,
                 1A2B3C4D000000000000001A,
                 1A2B3C4D000000000000001B,
                 1A2B3C4D000000000000001C,
@@ -81,7 +82,6 @@
                 1A2B3C4D0000000000000024,
                 1A2B3C4D0000000000000026,
                 1A2B3C4D0000000000000025,
-                1A2B3C4D0000000000000027,
                 1A2B3C4D0000000000000028,
                 1A2B3C4D000000000000002A,
                 1A2B3C4D000000000000002B,
@@ -91,7 +91,7 @@
         1A2B3C4D0000000000000007 = {
             isa = PBXFrameworksBuildPhase;
             buildActionMask = 2147483647;
-            files = ();
+            files = (1A2B3C4D0000000000000033);
             runOnlyForDeploymentPostprocessing = 0;
         };
         1A2B3C4D0000000000000008 = {
@@ -163,7 +163,6 @@
         1A2B3C4D0000000000000016 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
         1A2B3C4D0000000000000017 = { isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
         1A2B3C4D0000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCatalog.swift; sourceTree = "<group>"; };
-        1A2B3C4D0000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthorizationResponse.swift; sourceTree = "<group>"; };
         1A2B3C4D000000000000001A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricTheme.swift; sourceTree = "<group>"; };
         1A2B3C4D000000000000001B = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
         1A2B3C4D000000000000001C = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearancePickers.swift; sourceTree = "<group>"; };
@@ -175,12 +174,22 @@
         1A2B3C4D0000000000000024 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000014; };
         1A2B3C4D0000000000000025 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000015; };
         1A2B3C4D0000000000000026 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000018; };
-        1A2B3C4D0000000000000027 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000019; };
         1A2B3C4D0000000000000028 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001A; };
         1A2B3C4D0000000000000029 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001B; };
         1A2B3C4D000000000000002A = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001C; };
         1A2B3C4D000000000000002B = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001D; };
         1A2B3C4D000000000000002C = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001E; };
+        1A2B3C4D0000000000000031 = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/spotify/ios-sdk.git";
+            requirement = { kind = exactVersion; version = 5.0.1; };
+        };
+        1A2B3C4D0000000000000032 = {
+            isa = XCSwiftPackageProductDependency;
+            package = 1A2B3C4D0000000000000031;
+            productName = SpotifyiOS;
+        };
+        1A2B3C4D0000000000000033 = { isa = PBXBuildFile; productRef = 1A2B3C4D0000000000000032; };
     };
     rootObject = 1A2B3C4D0000000000000001;
 }

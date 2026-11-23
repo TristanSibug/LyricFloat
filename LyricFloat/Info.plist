@@ -5,13 +5,19 @@
     <key>CFBundleURLTypes</key>
     <array>
         <dict>
+            <key>CFBundleURLName</key>
+            <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>app.lyricfloat.oauth</string>
+                <string>app.lyricfloat.remote.oauth</string>
             </array>
         </dict>
+    </array>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>spotify</string>
     </array>
     <key>SpotifyClientID</key>
     <string>$(SPOTIFY_CLIENT_ID)</string>

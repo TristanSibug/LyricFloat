@@ -1,4 +1,3 @@
-import AuthenticationServices
 import Combine
 import Foundation
 import QuartzCore
@@ -22,7 +21,7 @@ final class OverlayModel: ObservableObject {
     @Published private(set) var isConnectingSpotify = false
     @Published private(set) var spotifyStatus: String?
 
-    var canConnectSpotify: Bool { spotify.clientID != nil }
+    var canConnectSpotify: Bool { spotify.isConfigured }
     var hasLyrics: Bool { lyrics != nil }
 
     private var foreground = false
@@ -32,7 +31,6 @@ final class OverlayModel: ObservableObject {
     private var spotifyTrack: SpotifyTrack?
     private var spotifyDisplayMessage = "Looking for Spotify playback…"
     private var nextLyricsAttempt: Date?
-    private var spotifyRetryAfter = Date.distantPast
     private var theme = LyricTheme.defaultTheme
     private var lyricFont = LyricFont.system
 
@@ -43,25 +41,26 @@ final class OverlayModel: ObservableObject {
     private var lastRenderedAt: TimeInterval = 0
 
     init() {
-        pictureInPictureObservation = player.$isActive.dropFirst().sink { [weak self] _ in
-            Task { @MainActor [weak self] in self?.startPollingIfNeeded() }
+        pictureInPictureObservation = player.$isActive.combineLatest(player.$isStarting).dropFirst().sink { [weak self] _ in
+            Task { @MainActor [weak self] in self?.updateSpotifyActivity() }
         }
-        isSpotifyConnected = spotify.isConnected
-        spotifyStatus = spotify.startupError
-        if isSpotifyConnected { prepareSpotifyTimeline() }
     }
 
     func setSceneActive(_ active: Bool) {
         foreground = active
+        updateSpotifyActivity()
         guard active else { return }
         update(forceFrame: true)
-        startPollingIfNeeded()
         guard timer == nil else { return }
         let timer = Timer(timeInterval: 0.125, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in self?.update() }
         }
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+    }
+
+    func handleSpotifyCallback(_ url: URL) {
+        spotify.handleCallback(url)
     }
 
     func applyTheme(_ theme: LyricTheme) {
@@ -83,24 +82,13 @@ final class OverlayModel: ObservableObject {
 
     func connectSpotify() async {
         guard !isConnectingSpotify, !isSpotifyConnected, canConnectSpotify else { return }
-        let window = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }?
-            .windows.first(where: \.isKeyWindow)
-        guard let window else {
-            spotifyStatus = "Open Lyric Float to connect Spotify."
-            return
-        }
-
         isConnectingSpotify = true
         spotifyStatus = nil
         defer { isConnectingSpotify = false }
         do {
-            try await spotify.connect(window: window)
+            try await spotify.connect()
             isSpotifyConnected = true
             prepareSpotifyTimeline()
-        } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
-            spotifyStatus = nil
         } catch {
             spotifyStatus = error.localizedDescription
         }
@@ -119,18 +107,18 @@ final class OverlayModel: ObservableObject {
     }
 
     func disconnectSpotify() {
-        do {
-            try spotify.disconnect()
-            isSpotifyConnected = false
-            spotifyPoll?.cancel()
-            spotifyPoll = nil
-            spotifyRetryAfter = .distantPast
-            setSpotifyTrack(nil)
-            setClock(position: 0, playing: false)
-            spotifyStatus = nil
-        } catch {
-            spotifyStatus = error.localizedDescription
-        }
+        isSpotifyConnected = false
+        spotifyPoll?.cancel()
+        spotifyPoll = nil
+        spotify.disconnect()
+        setSpotifyTrack(nil)
+        spotifyStatus = nil
+        setClock(position: 0, playing: false)
+    }
+
+    private func updateSpotifyActivity() {
+        spotify.setActivity(foreground: foreground, pictureInPicture: player.isActive || player.isStarting)
+        startPollingIfNeeded()
     }
 
     private var shouldPoll: Bool {
@@ -154,46 +142,27 @@ final class OverlayModel: ObservableObject {
 
     private func pollSpotifyIfNeeded() async -> TimeInterval? {
         guard shouldPoll else { return nil }
-        let waitTime = spotifyRetryAfter.timeIntervalSinceNow
-        if waitTime > 0 { return min(waitTime, 30) }
-
         do {
             let playback = try await spotify.playback()
             guard !Task.isCancelled, shouldPoll else { return nil }
+            spotifyStatus = nil
             if let playback {
                 if spotifyTrack?.id != playback.track.id {
                     setSpotifyTrack(playback.track)
                 }
                 loadTimedLyricsIfNeeded(for: playback.track)
                 setClock(position: playback.position, playing: playback.isPlaying)
-                spotifyStatus = nil
             } else {
                 if spotifyTrack != nil { setSpotifyTrack(nil) }
                 spotifyDisplayMessage = "Play a song in Spotify"
                 setClock(position: 0, playing: false)
-                spotifyStatus = nil
             }
             return 3
         } catch {
             guard !Task.isCancelled, shouldPoll else { return nil }
-            setClock(position: currentPosition(), playing: false)
             spotifyStatus = error.localizedDescription
-            if let failure = error as? Spotify.Failure {
-                switch failure {
-                case .reconnect:
-                    disconnectSpotify()
-                    if !isSpotifyConnected { spotifyStatus = failure.localizedDescription }
-                    return isSpotifyConnected ? 15 : nil
-                case .rateLimited(let delay):
-                    spotifyRetryAfter = Date().addingTimeInterval(delay + Double.random(in: 0...1))
-                    return min(delay, 30)
-                case .forbidden:
-                    return 30
-                default:
-                    break
-                }
-            }
-            return 8
+            setClock(position: currentPosition(), playing: false)
+            return 3
         }
     }
 
@@ -255,6 +224,11 @@ final class OverlayModel: ObservableObject {
         let position = min(elapsed, duration)
         if self.position != position { self.position = position }
         player.setPaused(startedAt == nil)
+
+        if player.isActive, isSpotifyConnected, let spotifyStatus {
+            render(current: spotifyStatus, next: nil, at: now, forceFrame: forceFrame)
+            return
+        }
 
         guard let lyrics else {
             let message = isSpotifyConnected ? spotifyDisplayMessage

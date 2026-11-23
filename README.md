@@ -1,21 +1,21 @@
-# Lyric Float
+# Lyric Float Remote
 
-Lyric Float shows timed lyrics in a movable Picture in Picture window on iOS 17 and later. It can follow Spotify playback after a one-time connection.
+This experimental iOS 17+ build reads the currently playing song from the Spotify app on the same iPhone. It uses Spotify’s App Remote SDK to test account access and Picture in Picture sync. The app has its own bundle ID so testers can install it alongside Lyric Float 0.8.0.
 
-Download the IPA from the release notes and sign it with your sideloading tool. [GitHub releases](https://github.com/TristanSibug/lyric-float/releases)
+## Configure Spotify for this build
 
-## Use Spotify sync
+Open the Spotify Dashboard registration used by the IPA. In **Settings**, enable **iOS**, add the iOS bundle ID `app.lyricfloat.remote`, and add the redirect URI `app.lyricfloat.remote.oauth://callback`. Test with a Spotify account outside that registration’s user list. [Spotify Dashboard](https://developer.spotify.com/dashboard) · [Spotify iOS setup](https://developer.spotify.com/documentation/ios/getting-started)
 
-1. Tap **Connect Spotify** and authorize Lyric Float on Spotify's sign-in page. Lyric Float saves the refresh token in the iPhone Keychain.
-2. Start a song in Spotify and open Lyric Float. It reads the current track and playback time, looks up timed lyrics through LRCLIB, and follows pauses, seeks, and track changes. Updates can lag by a few seconds.
-3. Tap **Float lyrics** to keep the lines visible while using another app. Use **Options → Disconnect Spotify** to remove the saved connection.
+## Test on an iPhone
 
-Open **Options → Theme** to choose a palette for the app and floating window. **Options → App Icon** lets you choose any of the 19 Home Screen icons independently. Sunrise is the default for both, and iOS shows a notice when the icon changes.
+1. Sideload the IPA. In Spotify, sign in with the test account and play a song with known timed lyrics.
+2. Open **Lyric Float Remote** and tap **Connect Spotify**. Approve the request in Spotify. Check whether the track and lyrics appear or note the error shown.
+3. Tap **Float lyrics** and go back to Spotify. Pause, seek, and skip to a different song with timed lyrics. Check whether the floating window responds before reopening Lyric Float Remote.
 
-Choose **Options → Font** to preview and set the typeface for lyrics in the app and the floating window. Open **Options → Timing adjustment** to fine-tune when the lyrics appear.
+The build checks playback every three seconds and keeps App Remote active during Picture in Picture for this test. Spotify recommends disconnecting when the app becomes inactive, so report any frozen lyrics or connection errors during the test. Tap **Connect Spotify** after a fresh app launch. [Spotify App Remote lifecycle](https://developer.spotify.com/documentation/ios/concepts/application-lifecycle)
 
-## Configure a build
+## Build from source
 
-Register a Web API app with `app.lyricfloat.oauth://callback` as its redirect URI and set the public `SPOTIFY_CLIENT_ID` build setting. No client secret is needed. Spotify Development Mode requires a Premium app owner and approved testers. Open `LyricFloat.xcodeproj` in Xcode and select an iPhone target to build. Spotify playback requires a configured app registration. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) · [Spotify development access](https://developer.spotify.com/documentation/web-api/concepts/quota-modes)
+Open `LyricFloat.xcodeproj` in Xcode. The project pins Spotify’s iOS SDK at 5.0.1 via Swift Package Manager. Set `SPOTIFY_CLIENT_ID` to the public ID of the configured Spotify app, then choose an iPhone target.
 
-For Spotify sync, lyric lookup sends the track's title, artist, album, and duration to LRCLIB. Playback and sign-in requests use Spotify's own endpoints. Review Spotify's policy and confirm permission for the feature before distributing a Spotify-connected build. [Spotify Developer Policy](https://developer.spotify.com/policy)
+Lyric lookup sends the track’s title, artist, album, and duration to LRCLIB. Verify that the use case is permitted before offering a wider Spotify-connected release. [Spotify Developer Policy](https://developer.spotify.com/policy)
