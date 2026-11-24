@@ -77,7 +77,7 @@ private struct OverlayView: View {
 
     private var header: some View {
         HStack {
-            Text("Lyric Float Remote")
+            Text("Lyric Float")
                 .font(.title2.bold())
                 .accessibilityAddTraits(.isHeader)
             Spacer()
