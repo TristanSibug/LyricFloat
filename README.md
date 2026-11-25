@@ -25,7 +25,9 @@ On iOS 26, **Show on Lock Screen** starts a session that can follow multiple son
 
 ## Screenshots
 
-<img src="docs/screenshots/lock-screen.jpg" width="540" alt="Live lyrics below Spotify’s Lock Screen player on iOS 26">
+<p align="center">
+  <img src="docs/screenshots/lock-screen.jpg" width="540" alt="Live lyrics below Spotify’s Lock Screen player on iOS 26">
+</p>
 
 <details>
 <summary>Themes, icons, and lyric fonts</summary>
