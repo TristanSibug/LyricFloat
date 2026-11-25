@@ -22,7 +22,7 @@ Use a sideloading tool that keeps and signs the included app extension. After ab
 
 ## Build from source
 
-The **Test Locked Lyrics** button in this experimental build uses iOS 26’s continued processing API. It starts while a song is playing and shows the current line in the system’s progress Live Activity. Lock your iPhone and check whether it advances through the rest of the song. A pause, track change, sync interruption, or iOS cancellation ends the test. Installation and background-task admission after AltStore signing need a device test. [Apple continued processing](https://developer.apple.com/documentation/backgroundtasks/performing-long-running-tasks-on-ios-and-ipados)
+The **Test Locked Lyrics** button in this experimental build uses iOS 26’s continued processing API. It starts while a song is playing and shows the current line under **Lyric Float** in the system’s progress Live Activity. iOS sets the font for that card. Lock your iPhone to follow the rest of the song. A pause, track change, sync interruption, or iOS cancellation ends the test. [Apple continued processing](https://developer.apple.com/documentation/backgroundtasks/performing-long-running-tasks-on-ios-and-ipados)
 
 Open `LyricFloat.xcodeproj` in Xcode. The project pins Spotify’s iOS SDK at 5.0.1 via Swift Package Manager. Set `SPOTIFY_CLIENT_ID` to the public ID of the configured Spotify app, then choose an iPhone target.
 

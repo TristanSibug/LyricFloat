@@ -4,13 +4,14 @@ import Foundation
 
 @MainActor
 final class LockedSongTest: ObservableObject {
+    private static let cardTitle = "Lyric Float"
+
     @Published private(set) var isActive = false
     @Published private(set) var message: String?
 
     private struct SongRun {
         let identifier: String
         let track: SpotifyTrack
-        let title: String
         var line: String
         var position: TimeInterval
     }
@@ -19,7 +20,7 @@ final class LockedSongTest: ObservableObject {
     private var task: BGTask?
 
     @available(iOS 26.0, *)
-    func start(track: SpotifyTrack, title: String, line: String, position: TimeInterval) {
+    func start(track: SpotifyTrack, line: String, position: TimeInterval) {
         guard run == nil else { return }
         let identifiers = Bundle.main.object(forInfoDictionaryKey: "BGTaskSchedulerPermittedIdentifiers") as? [String]
         guard let pattern = identifiers?.first(where: { $0.hasSuffix(".locked-song.*") }) else {
@@ -42,9 +43,9 @@ final class LockedSongTest: ObservableObject {
             return
         }
 
-        let request = BGContinuedProcessingTaskRequest(identifier: identifier, title: title, subtitle: line)
+        let request = BGContinuedProcessingTaskRequest(identifier: identifier, title: Self.cardTitle, subtitle: line)
         request.strategy = .fail
-        run = SongRun(identifier: identifier, track: track, title: title, line: line, position: position)
+        run = SongRun(identifier: identifier, track: track, line: line, position: position)
         do {
             try scheduler.submit(request)
             message = "Lock your iPhone to see whether the lyrics follow this song."
@@ -79,7 +80,7 @@ final class LockedSongTest: ObservableObject {
             if task.progress.completedUnitCount != elapsed {
                 task.progress.completedUnitCount = elapsed
             }
-            if lineChanged { task.updateTitle(run.title, subtitle: line) }
+            if lineChanged { task.updateTitle(Self.cardTitle, subtitle: line) }
         }
     }
 
@@ -102,7 +103,7 @@ final class LockedSongTest: ObservableObject {
         }
         task.progress.totalUnitCount = Int64(ceil(run.track.duration))
         task.progress.completedUnitCount = Int64(max(0, run.position.rounded(.down)))
-        task.updateTitle(run.title, subtitle: run.line)
+        task.updateTitle(Self.cardTitle, subtitle: run.line)
     }
 
     private func finish(success: Bool, message: String?) {

@@ -82,8 +82,8 @@ final class OverlayModel: ObservableObject {
         if lockedSongTest.isActive {
             lockedSongTest.stop()
         } else if canTestLockedLyrics, let spotifyTrack {
-            let state = lockScreenState(line: currentLine)
-            lockedSongTest.start(track: spotifyTrack, title: state.title, line: state.line, position: position)
+            let line = String(decoding: currentLine.utf8.prefix(400), as: UTF8.self)
+            lockedSongTest.start(track: spotifyTrack, line: line, position: position)
             if lockedSongTest.isActive { liveActivity.stop() }
         }
     }

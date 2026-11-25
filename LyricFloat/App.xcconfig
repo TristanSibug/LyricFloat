@@ -1,13 +1,13 @@
 ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIcon-light AppIcon-eggshell-white AppIcon-linen AppIcon-sea-glass AppIcon-heritage AppIcon-oled AppIcon-dark AppIcon-ember AppIcon-midnight-cherry AppIcon-forest AppIcon-nord AppIcon-deep-ocean AppIcon-vscode-blue AppIcon-cobalt-coral AppIcon-signal-blue AppIcon-tokyo-night AppIcon-amethyst AppIcon-dracula
 ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
 CODE_SIGN_STYLE = Automatic
-CURRENT_PROJECT_VERSION = 17
+CURRENT_PROJECT_VERSION = 18
 GENERATE_INFOPLIST_FILE = YES
 INFOPLIST_FILE = LyricFloat/Info.plist
 INFOPLIST_KEY_CFBundleDisplayName = Lyric Float Remote
 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES
 LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks
-MARKETING_VERSION = 0.9.5
+MARKETING_VERSION = 0.9.6
 OTHER_LDFLAGS = $(inherited) -ObjC
 PRODUCT_BUNDLE_IDENTIFIER = app.lyricfloat.remote
 PRODUCT_NAME = LyricFloat
