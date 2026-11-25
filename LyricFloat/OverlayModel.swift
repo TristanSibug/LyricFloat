@@ -36,7 +36,7 @@ final class OverlayModel: ObservableObject {
     private var lyricFont = LyricFont.system
     private var lastPlaybackSample: Date?
 
-    private var timer: Timer?
+    private var playbackClock: Task<Void, Never>?
     private var clockPosition: TimeInterval = 0
     private var startedAt: TimeInterval?
     private var displayedFrame: (current: String, next: String?)?
@@ -56,12 +56,6 @@ final class OverlayModel: ObservableObject {
         updateSpotifyActivity()
         guard active else { return }
         update(forceFrame: true)
-        guard timer == nil else { return }
-        let timer = Timer(timeInterval: 0.125, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.update() }
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        self.timer = timer
     }
 
     func handleSpotifyCallback(_ url: URL) {
@@ -116,7 +110,7 @@ final class OverlayModel: ObservableObject {
         spotifyDisplayMessage = "Looking for Spotify playback…"
         spotifyStatus = nil
         setClock(position: 0, playing: false)
-        startPollingIfNeeded()
+        updateSpotifyActivity()
     }
 
     func disconnectSpotify() {
@@ -129,11 +123,13 @@ final class OverlayModel: ObservableObject {
         setSpotifyTrack(nil)
         spotifyStatus = nil
         setClock(position: 0, playing: false)
+        updateSpotifyActivity()
     }
 
     private func updateSpotifyActivity() {
         spotify.setActivity(foreground: foreground, showingLyrics: showingLyrics)
         startPollingIfNeeded()
+        updatePlaybackClock()
     }
 
     private var showingLyrics: Bool {
@@ -142,6 +138,27 @@ final class OverlayModel: ObservableObject {
 
     private var shouldPoll: Bool {
         isSpotifyConnected && (foreground || showingLyrics)
+    }
+
+    private func updatePlaybackClock() {
+        guard shouldPoll else {
+            playbackClock?.cancel()
+            playbackClock = nil
+            return
+        }
+        guard playbackClock == nil else { return }
+
+        playbackClock = Task { [weak self] in
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .milliseconds(125))
+                } catch {
+                    return
+                }
+                guard !Task.isCancelled, let self else { return }
+                self.update()
+            }
+        }
     }
 
     private func startPollingIfNeeded() {
@@ -289,8 +306,16 @@ final class OverlayModel: ObservableObject {
     }
 
     private func lockScreenState(line: String) -> LyricLiveActivity.State {
-        LyricLiveActivity.State(
-            title: String(decoding: (title ?? "Lyric Float").utf8.prefix(160), as: UTF8.self),
+        let song = String(decoding: (title ?? "Lyric Float").utf8.prefix(128), as: UTF8.self)
+        let header: String
+        if let artist = artist?.trimmingCharacters(in: .whitespacesAndNewlines), !artist.isEmpty {
+            let performer = String(decoding: artist.utf8.prefix(64), as: UTF8.self)
+            header = "\(song) ⋅ \(performer)"
+        } else {
+            header = song
+        }
+        return LyricLiveActivity.State(
+            title: header,
             line: String(decoding: line.utf8.prefix(400), as: UTF8.self),
             themeID: theme.id,
             fontID: lyricFont.rawValue

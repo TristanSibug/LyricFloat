@@ -10,7 +10,7 @@ struct LyricFloatLiveActivity: Widget {
             let font = LyricFont(rawValue: context.state.fontID) ?? .system
 
             VStack(alignment: .leading, spacing: 8) {
-                Label(context.state.title, systemImage: "music.note")
+                Text(context.state.title)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(theme.highlight)
                     .lineLimit(1)

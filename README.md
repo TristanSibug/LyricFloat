@@ -16,7 +16,7 @@ The build checks playback every three seconds and keeps App Remote active during
 
 ## Show lyrics on the Lock Screen
 
-While lyrics are visible in the app, tap **Show on Lock Screen**. The Live Activity uses your lyric font and theme. Tap **Remove from Lock Screen** in Lyric Float to end it.
+While lyrics are visible in the app, tap **Show on Lock Screen**. The Live Activity shows **Song title ⋅ Artist Name** above the current line and uses your lyric font and theme. Tap **Remove from Lock Screen** in Lyric Float to end it.
 
 Use a sideloading tool that keeps and signs the included app extension. If iOS suspends Lyric Float, the card will ask you to reopen it to refresh after about 15 seconds without new Spotify playback data. [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
 
