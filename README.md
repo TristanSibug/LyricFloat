@@ -4,9 +4,14 @@ Follow synced Spotify lyrics in a floating Picture in Picture window or on your 
 
 [Privacy policy](PRIVACY.md)
 
+<p align="center">
+  <img src="docs/screenshots/now-playing.png" width="240" alt="Lyric Float now playing in the Sunrise theme">
+  <img src="docs/screenshots/floating-lyrics-compact.png" width="240" alt="Compact Picture in Picture lyrics window">
+</p>
+
 ## Install and connect
 
-1. Download `LyricFloat.ipa` from the [latest release](https://github.com/TristanSibug/lyric-float/releases/latest). Sideload it with AltStore and choose **Keep App Extensions**.
+1. Download `LyricFloat.ipa` from the [GitHub Releases](https://github.com/TristanSibug/lyric-float/releases). Sideload it with AltStore and choose **Keep App Extensions**.
 2. Play a song in Spotify, then open **Lyric Float** and tap **Connect Spotify**. Approve the connection in Spotify.
 3. When lyrics appear, tap **Float lyrics** or **Show on Lock Screen**.
 
@@ -17,6 +22,35 @@ If you installed the previous App Remote build, update it with the same AltStore
 Open the **Options** menu to pick a theme, lyric font, or Home Screen icon. The font and theme apply to floating lyrics and the Lock Screen card. Use **Timing adjustment** if a track’s lyrics are early or late.
 
 On iOS 26, **Show on Lock Screen** starts a session that can follow multiple songs for up to 15 minutes. iOS may show a separate progress card while sync runs. When the session ends, the lyrics card closes, the app shows the reason, and **Show on Lock Screen** is available again. On earlier iOS versions, Lock Screen lyrics can go stale when iOS suspends the app. Tap the card to reopen Lyric Float and refresh. [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
+
+## Screenshots
+
+<img src="docs/screenshots/lock-screen.jpg" width="540" alt="Live lyrics below Spotify’s Lock Screen player on iOS 26">
+
+<details>
+<summary>Themes, icons, and lyric fonts</summary>
+
+<p>
+  <img src="docs/screenshots/theme-picker.png" width="200" alt="Theme picker with Sunrise selected">
+  <img src="docs/screenshots/app-icon-picker.png" width="200" alt="Home Screen app icon picker">
+  <img src="docs/screenshots/lyrics-font-picker.png" width="200" alt="System, Rounded, Serif, and Monospaced lyric fonts">
+</p>
+
+</details>
+
+<details>
+<summary>Setup and playback controls</summary>
+
+<p>
+  <img src="docs/screenshots/connect-spotify.png" width="220" alt="Connect Spotify screen">
+  <img src="docs/screenshots/options-menu.png" width="220" alt="Options menu with theme, app icon, font, and disconnect controls">
+</p>
+<p>
+  <img src="docs/screenshots/floating-lyrics-large.png" width="220" alt="Expanded Picture in Picture lyrics window">
+  <img src="docs/screenshots/lock-screen-sync.png" width="220" alt="In-app view while the Lock Screen sync session is active">
+</p>
+
+</details>
 
 ## Build from source
 
