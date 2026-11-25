@@ -2,6 +2,8 @@
 
 Follow synced Spotify lyrics in a floating Picture in Picture window or on your iPhone’s Lock Screen. Lyric Float reads playback from the Spotify app on the same iPhone. The app requires iOS 17 or later. Continuous Lock Screen sync requires iOS 26.
 
+[Privacy policy](PRIVACY.md)
+
 ## Install and connect
 
 1. Download `LyricFloat.ipa` from the [latest release](https://github.com/TristanSibug/lyric-float/releases/latest). Sideload it with AltStore and choose **Keep App Extensions**.
