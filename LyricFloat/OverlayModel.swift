@@ -7,6 +7,7 @@ import UIKit
 final class OverlayModel: ObservableObject {
     let player = FloatingPlayer()
     let liveActivity = LyricLiveActivity()
+    let lockedSongTest = LockedSongTest()
     private let catalog = LyricsCatalog()
     private let spotify = Spotify()
 
@@ -25,6 +26,7 @@ final class OverlayModel: ObservableObject {
     var canConnectSpotify: Bool { spotify.isConfigured }
     var canDisconnectSpotify: Bool { !isConnectingSpotify && (isSpotifyConnected || spotify.hasSavedConnection) }
     var hasLyrics: Bool { lyrics != nil }
+    var canTestLockedLyrics: Bool { hasLyrics && startedAt != nil && spotifyStatus == nil }
 
     private var foreground = false
     private var playbackDisplayObservation: AnyCancellable?
@@ -45,7 +47,7 @@ final class OverlayModel: ObservableObject {
 
     init() {
         playbackDisplayObservation = player.$isActive
-            .combineLatest(player.$isStarting, liveActivity.$isActive)
+            .combineLatest(player.$isStarting, liveActivity.$isActive, lockedSongTest.$isActive)
             .dropFirst()
             .sink { [weak self] _ in
                 Task { @MainActor [weak self] in self?.updateSpotifyActivity() }
@@ -72,6 +74,17 @@ final class OverlayModel: ObservableObject {
             liveActivity.stop()
         } else if hasLyrics, isSpotifyConnected, spotifyStatus == nil {
             liveActivity.start(lockScreenState(line: currentLine), lastPlaybackSample: lastPlaybackSample)
+        }
+    }
+
+    @available(iOS 26.0, *)
+    func toggleLockedSongTest() {
+        if lockedSongTest.isActive {
+            lockedSongTest.stop()
+        } else if canTestLockedLyrics, let spotifyTrack {
+            let state = lockScreenState(line: currentLine)
+            lockedSongTest.start(track: spotifyTrack, title: state.title, line: state.line, position: position)
+            if lockedSongTest.isActive { liveActivity.stop() }
         }
     }
 
@@ -126,6 +139,7 @@ final class OverlayModel: ObservableObject {
             return
         }
         liveActivity.stop()
+        lockedSongTest.stop()
         isSpotifyConnected = false
         spotifyPoll?.cancel()
         spotifyPoll = nil
@@ -143,7 +157,7 @@ final class OverlayModel: ObservableObject {
     }
 
     private var showingLyrics: Bool {
-        player.isActive || player.isStarting || liveActivity.isActive
+        player.isActive || player.isStarting || liveActivity.isActive || lockedSongTest.isActive
     }
 
     private var shouldPoll: Bool {
@@ -303,6 +317,10 @@ final class OverlayModel: ObservableObject {
 
     private func render(current: String, next: String?, at now: TimeInterval, forceFrame: Bool) {
         if currentLine != current { currentLine = current }
+        if lockedSongTest.isActive {
+            lockedSongTest.update(trackID: spotifyTrack?.id, position: position, playing: startedAt != nil,
+                                  line: current, lastPlaybackSample: lastPlaybackSample)
+        }
         if liveActivity.isActive, lastPlaybackSample != nil {
             liveActivity.publish(lockScreenState(line: current), lastPlaybackSample: lastPlaybackSample)
         }
