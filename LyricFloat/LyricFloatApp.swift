@@ -30,7 +30,11 @@ private struct OverlayView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header
-                track
+
+                if let title = model.title {
+                    track(title: title)
+                        .padding(.top, 6)
+                }
 
                 LyricsPreview(player: model.player, theme: theme)
                     .aspectRatio(720.0 / 320, contentMode: .fit)
@@ -42,7 +46,8 @@ private struct OverlayView: View {
                                  lockedLyrics: model.lockedLyrics, theme: theme)
             }
             .padding(.horizontal, 22)
-            .padding(.vertical, 18)
+            .padding(.top, 26)
+            .padding(.bottom, 18)
             .frame(maxWidth: 480)
             .frame(maxWidth: .infinity)
         }
@@ -77,10 +82,40 @@ private struct OverlayView: View {
     }
 
     private var header: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            titleBar
+
+            if !model.isSpotifyConnected, model.canConnectSpotify {
+                Button(model.isConnectingSpotify ? "Connecting…" : "Connect Spotify") {
+                    Task { await model.connectSpotify() }
+                }
+                .buttonStyle(ThemedButtonStyle(theme: theme))
+                .disabled(model.isConnectingSpotify)
+            }
+
+            if let message = model.spotifyStatus {
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(theme.secondary)
+            }
+        }
+    }
+
+    private var titleBar: some View {
         HStack {
-            Text("Lyric Float")
-                .font(.title2.bold())
-                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Lyric Float")
+                    .font(.title2.bold())
+                    .accessibilityAddTraits(.isHeader)
+
+                if model.isSpotifyConnected {
+                    Label(model.spotifyStatus == nil ? "Spotify connected" : "Spotify connection interrupted",
+                          systemImage: model.spotifyStatus == nil ? "checkmark.circle" : "exclamationmark.circle")
+                        .font(.footnote)
+                        .foregroundStyle(theme.secondary)
+                }
+            }
+
             Spacer()
             Menu {
                 Button("Theme", systemImage: "paintpalette") { panel = .themes }
@@ -104,35 +139,15 @@ private struct OverlayView: View {
         }
     }
 
-    private var track: some View {
+    private func track(title: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            if model.isSpotifyConnected {
-                Label(model.spotifyStatus == nil ? "App Remote connected" : "App Remote interrupted",
-                      systemImage: "waveform")
-                    .font(.footnote)
-                    .foregroundStyle(theme.secondary)
-            } else if model.canConnectSpotify {
-                Button(model.isConnectingSpotify ? "Connecting…" : "Connect Spotify") {
-                    Task { await model.connectSpotify() }
-                }
-                .buttonStyle(ThemedButtonStyle(theme: theme))
-                .disabled(model.isConnectingSpotify)
-            }
+            Text(title)
+                .font(.title.bold())
+                .accessibilityAddTraits(.isHeader)
 
-            if let title = model.title {
-                Text(title)
-                    .font(.title.bold())
-                    .accessibilityAddTraits(.isHeader)
-                if let artist = model.artist, !artist.isEmpty {
-                    Text(artist)
-                        .font(.subheadline)
-                        .foregroundStyle(theme.secondary)
-                }
-            }
-
-            if let message = model.spotifyStatus {
-                Text(message)
-                    .font(.footnote)
+            if let artist = model.artist, !artist.isEmpty {
+                Text(artist)
+                    .font(.subheadline)
                     .foregroundStyle(theme.secondary)
             }
         }

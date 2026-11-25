@@ -80,7 +80,9 @@ final class OverlayModel: ObservableObject {
         } else if canShowLockScreenLyrics {
             liveActivity.start(lockScreenState(line: currentLine), lastPlaybackSample: lastPlaybackSample)
             if #available(iOS 26.0, *), liveActivity.isActive {
-                lockedLyrics.start(at: CACurrentMediaTime())
+                lockedLyrics.start(at: CACurrentMediaTime()) { [weak liveActivity] in
+                    liveActivity?.stop()
+                }
             }
         }
     }

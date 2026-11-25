@@ -22,6 +22,8 @@ Use a sideloading tool that keeps and signs the included app extension. After ab
 
 On iOS 26, **Show on Lock Screen** also starts a background sync session for up to 15 minutes. To test it, lock your iPhone and let the current song finish or skip it from Spotify’s Lock Screen controls. The lyrics card looks up timed lyrics for each new song. iOS may show a separate **Lyric Float** progress card. A pause or connection loss of about 30 seconds can end sync, and iOS can end the task early. [Apple continued processing](https://developer.apple.com/documentation/backgroundtasks/performing-long-running-tasks-on-ios-and-ipados)
 
+When the sync session ends, Lyric Float removes its lyrics card and shows the reason in the app. Tap **Show on Lock Screen** again to start another session.
+
 ## Build from source
 
 Open `LyricFloat.xcodeproj` in Xcode. The project pins Spotify’s iOS SDK at 5.0.1 via Swift Package Manager. Set `SPOTIFY_CLIENT_ID` to the public ID of the configured Spotify app, then choose an iPhone target.

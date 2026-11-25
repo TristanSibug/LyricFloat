@@ -18,7 +18,13 @@ final class LyricLiveActivity: ObservableObject {
 
     init() {
         if let existing = Session.activities.first(where: { $0.activityState == .active || $0.activityState == .stale }) {
-            attach(existing)
+            if #available(iOS 26.0, *) {
+                // The continued processing task can't be restored after the app process exits.
+                message = "The previous Lock Screen session ended."
+                Task { await existing.end(nil, dismissalPolicy: .immediate) }
+            } else {
+                attach(existing)
+            }
         }
     }
 
@@ -40,10 +46,11 @@ final class LyricLiveActivity: ObservableObject {
         }
     }
 
-    func stop() {
-        guard let activity else { return }
+    @discardableResult
+    func stop() -> Task<Void, Never>? {
+        guard let activity else { return nil }
         detach()
-        Task { await activity.end(nil, dismissalPolicy: .immediate) }
+        return Task { await activity.end(nil, dismissalPolicy: .immediate) }
     }
 
     func publish(_ state: State, lastPlaybackSample: Date?) {

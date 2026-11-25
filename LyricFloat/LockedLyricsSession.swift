@@ -1,11 +1,13 @@
 import BackgroundTasks
 import Combine
 import Foundation
+import QuartzCore
 
 @MainActor
 final class LockedLyricsSession: ObservableObject {
     private static let duration: TimeInterval = 15 * 60
     private static let playbackGracePeriod: TimeInterval = 30
+    private static let completionMessage = "The 15-minute Lock Screen sync session ended."
 
     @Published private(set) var isActive = false
     @Published private(set) var message: String?
@@ -13,6 +15,7 @@ final class LockedLyricsSession: ObservableObject {
     private struct Run {
         let identifier: String
         let startedAt: TimeInterval
+        let endActivity: @MainActor () -> Task<Void, Never>?
         var lastPlayingAt: TimeInterval
         var elapsedSeconds: Int64 = 0
     }
@@ -21,7 +24,7 @@ final class LockedLyricsSession: ObservableObject {
     private var task: BGTask?
 
     @available(iOS 26.0, *)
-    func start(at now: TimeInterval) {
+    func start(at now: TimeInterval, endActivity: @escaping @MainActor () -> Task<Void, Never>?) {
         guard run == nil else { return }
         let identifiers = Bundle.main.object(forInfoDictionaryKey: "BGTaskSchedulerPermittedIdentifiers") as? [String]
         guard let pattern = identifiers?.first(where: { $0.hasSuffix(".locked-song.*") }) else {
@@ -46,7 +49,7 @@ final class LockedLyricsSession: ObservableObject {
 
         let request = BGContinuedProcessingTaskRequest(identifier: identifier, title: "Lyric Float", subtitle: "Syncing Lock Screen lyrics")
         request.strategy = .fail
-        run = Run(identifier: identifier, startedAt: now, lastPlayingAt: now)
+        run = Run(identifier: identifier, startedAt: now, endActivity: endActivity, lastPlayingAt: now)
         do {
             try scheduler.submit(request)
             message = "Lock Screen sync is active for up to 15 minutes."
@@ -61,7 +64,7 @@ final class LockedLyricsSession: ObservableObject {
         guard var run else { return }
         let elapsed = now - run.startedAt
         if elapsed >= Self.duration {
-            finish(success: true, message: "The 15-minute Lock Screen sync session ended.")
+            finish(success: true, message: Self.completionMessage)
             return
         }
         if playing {
@@ -94,8 +97,10 @@ final class LockedLyricsSession: ObservableObject {
         self.task = task
         task.expirationHandler = { [weak self] in
             Task { @MainActor in
-                guard let self, self.run?.identifier == identifier else { return }
-                self.finish(success: false, message: "iOS ended background sync.")
+                guard let self, let run = self.run, run.identifier == identifier else { return }
+                let reachedLimit = CACurrentMediaTime() - run.startedAt >= Self.duration
+                self.finish(success: reachedLimit,
+                            message: reachedLimit ? Self.completionMessage : "iOS ended background sync.")
             }
         }
         task.progress.totalUnitCount = Int64(Self.duration)
@@ -107,13 +112,18 @@ final class LockedLyricsSession: ObservableObject {
         self.run = nil
         isActive = false
         self.message = message
+        let endingActivity = run.endActivity()
         if let task {
             task.expirationHandler = nil
-            if #available(iOS 26.0, *), success, let continued = task as? BGContinuedProcessingTask {
-                continued.progress.completedUnitCount = continued.progress.totalUnitCount
-            }
-            task.setTaskCompleted(success: success)
             self.task = nil
+            // Keep the background task alive until ActivityKit removes the card.
+            Task {
+                await endingActivity?.value
+                if #available(iOS 26.0, *), success, let continued = task as? BGContinuedProcessingTask {
+                    continued.progress.completedUnitCount = continued.progress.totalUnitCount
+                }
+                task.setTaskCompleted(success: success)
+            }
         } else {
             BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: run.identifier)
         }
