@@ -6,6 +6,7 @@ import UIKit
 @MainActor
 final class OverlayModel: ObservableObject {
     let player = FloatingPlayer()
+    let liveActivity = LyricLiveActivity()
     private let catalog = LyricsCatalog()
     private let spotify = Spotify()
 
@@ -25,7 +26,7 @@ final class OverlayModel: ObservableObject {
     var hasLyrics: Bool { lyrics != nil }
 
     private var foreground = false
-    private var pictureInPictureObservation: AnyCancellable?
+    private var playbackDisplayObservation: AnyCancellable?
     private var spotifyPoll: Task<Void, Never>?
     private var lyricsLookup: Task<Void, Never>?
     private var spotifyTrack: SpotifyTrack?
@@ -33,6 +34,7 @@ final class OverlayModel: ObservableObject {
     private var nextLyricsAttempt: Date?
     private var theme = LyricTheme.defaultTheme
     private var lyricFont = LyricFont.system
+    private var lastPlaybackSample: Date?
 
     private var timer: Timer?
     private var clockPosition: TimeInterval = 0
@@ -41,9 +43,12 @@ final class OverlayModel: ObservableObject {
     private var lastRenderedAt: TimeInterval = 0
 
     init() {
-        pictureInPictureObservation = player.$isActive.combineLatest(player.$isStarting).dropFirst().sink { [weak self] _ in
-            Task { @MainActor [weak self] in self?.updateSpotifyActivity() }
-        }
+        playbackDisplayObservation = player.$isActive
+            .combineLatest(player.$isStarting, liveActivity.$isActive)
+            .dropFirst()
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in self?.updateSpotifyActivity() }
+            }
     }
 
     func setSceneActive(_ active: Bool) {
@@ -61,6 +66,14 @@ final class OverlayModel: ObservableObject {
 
     func handleSpotifyCallback(_ url: URL) {
         spotify.handleCallback(url)
+    }
+
+    func toggleLockScreenLyrics() {
+        if liveActivity.isActive {
+            liveActivity.stop()
+        } else if hasLyrics, isSpotifyConnected, spotifyStatus == nil {
+            liveActivity.start(lockScreenState(line: currentLine), lastPlaybackSample: lastPlaybackSample)
+        }
     }
 
     func applyTheme(_ theme: LyricTheme) {
@@ -107,22 +120,28 @@ final class OverlayModel: ObservableObject {
     }
 
     func disconnectSpotify() {
+        liveActivity.stop()
         isSpotifyConnected = false
         spotifyPoll?.cancel()
         spotifyPoll = nil
         spotify.disconnect()
+        lastPlaybackSample = nil
         setSpotifyTrack(nil)
         spotifyStatus = nil
         setClock(position: 0, playing: false)
     }
 
     private func updateSpotifyActivity() {
-        spotify.setActivity(foreground: foreground, pictureInPicture: player.isActive || player.isStarting)
+        spotify.setActivity(foreground: foreground, showingLyrics: showingLyrics)
         startPollingIfNeeded()
     }
 
+    private var showingLyrics: Bool {
+        player.isActive || player.isStarting || liveActivity.isActive
+    }
+
     private var shouldPoll: Bool {
-        isSpotifyConnected && (foreground || player.isActive || player.isStarting)
+        isSpotifyConnected && (foreground || showingLyrics)
     }
 
     private func startPollingIfNeeded() {
@@ -146,6 +165,7 @@ final class OverlayModel: ObservableObject {
             let playback = try await spotify.playback()
             guard !Task.isCancelled, shouldPoll else { return nil }
             spotifyStatus = nil
+            lastPlaybackSample = Date()
             if let playback {
                 if spotifyTrack?.id != playback.track.id {
                     setSpotifyTrack(playback.track)
@@ -161,6 +181,7 @@ final class OverlayModel: ObservableObject {
         } catch {
             guard !Task.isCancelled, shouldPoll else { return nil }
             spotifyStatus = error.localizedDescription
+            lastPlaybackSample = nil
             setClock(position: currentPosition(), playing: false)
             return 3
         }
@@ -255,6 +276,9 @@ final class OverlayModel: ObservableObject {
 
     private func render(current: String, next: String?, at now: TimeInterval, forceFrame: Bool) {
         if currentLine != current { currentLine = current }
+        if liveActivity.isActive {
+            liveActivity.publish(lockScreenState(line: current), lastPlaybackSample: lastPlaybackSample)
+        }
         let changed = displayedFrame?.current != current || displayedFrame?.next != next
         let refresh = now - lastRenderedAt >= 1 && (player.isActive || player.isStarting)
         if forceFrame || changed || refresh {
@@ -262,5 +286,14 @@ final class OverlayModel: ObservableObject {
             displayedFrame = (current, next)
             lastRenderedAt = now
         }
+    }
+
+    private func lockScreenState(line: String) -> LyricLiveActivity.State {
+        LyricLiveActivity.State(
+            title: String(decoding: (title ?? "Lyric Float").utf8.prefix(160), as: UTF8.self),
+            line: String(decoding: line.utf8.prefix(400), as: UTF8.self),
+            themeID: theme.id,
+            fontID: lyricFont.rawValue
+        )
     }
 }

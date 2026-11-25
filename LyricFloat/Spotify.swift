@@ -106,11 +106,11 @@ final class Spotify: NSObject, @preconcurrency SPTAppRemoteDelegate {
         if foreground { requestConnection() }
     }
 
-    func setActivity(foreground: Bool, pictureInPicture: Bool) {
+    func setActivity(foreground: Bool, showingLyrics: Bool) {
         self.foreground = foreground
         if foreground, connection != nil {
             requestConnection()
-        } else if !foreground, !pictureInPicture, connection == nil {
+        } else if !foreground, !showingLyrics, connection == nil {
             suspend()
         }
     }

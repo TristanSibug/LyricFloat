@@ -14,6 +14,12 @@ Open the Spotify Dashboard registration used by the IPA. In **Settings**, enable
 
 The build checks playback every three seconds and keeps App Remote active during Picture in Picture for this test. Spotify recommends disconnecting when the app becomes inactive, so report any frozen lyrics or connection errors during the test. Tap **Connect Spotify** after a fresh app launch. [Spotify App Remote lifecycle](https://developer.spotify.com/documentation/ios/concepts/application-lifecycle)
 
+## Show lyrics on the Lock Screen
+
+While lyrics are visible in the app, tap **Show on Lock Screen**. The Live Activity uses your lyric font and theme. Tap **Remove from Lock Screen** in Lyric Float to end it.
+
+Use a sideloading tool that keeps and signs the included app extension. If iOS suspends Lyric Float, the card will ask you to reopen it to refresh after about 15 seconds without new Spotify playback data. [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
+
 ## Build from source
 
 Open `LyricFloat.xcodeproj` in Xcode. The project pins Spotify’s iOS SDK at 5.0.1 via Swift Package Manager. Set `SPOTIFY_CLIENT_ID` to the public ID of the configured Spotify app, then choose an iPhone target.

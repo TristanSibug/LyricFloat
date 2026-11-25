@@ -11,6 +11,7 @@
                 LastUpgradeCheck = 1600;
                 TargetAttributes = {
                     1A2B3C4D0000000000000003 = { CreatedOnToolsVersion = 16.0; };
+                    1A2B3C4D0000000000000040 = { CreatedOnToolsVersion = 16.0; };
                 };
             };
             buildConfigurationList = 1A2B3C4D0000000000000009;
@@ -23,11 +24,15 @@
             productRefGroup = 1A2B3C4D0000000000000005;
             projectDirPath = "";
             projectRoot = "";
-            targets = (1A2B3C4D0000000000000003);
+            targets = (1A2B3C4D0000000000000003, 1A2B3C4D0000000000000040);
         };
         1A2B3C4D0000000000000002 = {
             isa = PBXGroup;
-            children = (1A2B3C4D0000000000000004, 1A2B3C4D0000000000000005);
+            children = (
+                1A2B3C4D0000000000000004,
+                1A2B3C4D0000000000000041,
+                1A2B3C4D0000000000000005,
+            );
             sourceTree = "<group>";
         };
         1A2B3C4D0000000000000003 = {
@@ -37,9 +42,10 @@
                 1A2B3C4D0000000000000006,
                 1A2B3C4D0000000000000007,
                 1A2B3C4D0000000000000008,
+                1A2B3C4D0000000000000049,
             );
             buildRules = ();
-            dependencies = ();
+            dependencies = (1A2B3C4D000000000000004B);
             name = LyricFloat;
             packageProductDependencies = (1A2B3C4D0000000000000032);
             productName = LyricFloat;
@@ -62,13 +68,15 @@
                 1A2B3C4D000000000000001C,
                 1A2B3C4D000000000000001D,
                 1A2B3C4D000000000000001E,
+                1A2B3C4D000000000000004D,
+                1A2B3C4D000000000000004E,
             );
             path = LyricFloat;
             sourceTree = "<group>";
         };
         1A2B3C4D0000000000000005 = {
             isa = PBXGroup;
-            children = (1A2B3C4D0000000000000010);
+            children = (1A2B3C4D0000000000000010, 1A2B3C4D0000000000000042);
             name = Products;
             sourceTree = "<group>";
         };
@@ -85,6 +93,8 @@
                 1A2B3C4D0000000000000028,
                 1A2B3C4D000000000000002A,
                 1A2B3C4D000000000000002B,
+                1A2B3C4D000000000000004F,
+                1A2B3C4D0000000000000050,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
@@ -190,6 +200,99 @@
             productName = SpotifyiOS;
         };
         1A2B3C4D0000000000000033 = { isa = PBXBuildFile; productRef = 1A2B3C4D0000000000000032; };
+        1A2B3C4D0000000000000040 = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = 1A2B3C4D0000000000000046;
+            buildPhases = (1A2B3C4D0000000000000045);
+            buildRules = ();
+            dependencies = ();
+            name = LyricFloatLiveActivity;
+            productName = LyricFloatLiveActivity;
+            productReference = 1A2B3C4D0000000000000042;
+            productType = "com.apple.product-type.app-extension";
+        };
+        1A2B3C4D0000000000000041 = {
+            isa = PBXGroup;
+            children = (
+                1A2B3C4D0000000000000043,
+                1A2B3C4D0000000000000044,
+                1A2B3C4D0000000000000055,
+            );
+            path = LyricFloatLiveActivity;
+            sourceTree = "<group>";
+        };
+        1A2B3C4D0000000000000042 = {
+            isa = PBXFileReference;
+            explicitFileType = "wrapper.app-extension";
+            path = LyricFloatLiveActivity.appex;
+            sourceTree = BUILT_PRODUCTS_DIR;
+        };
+        1A2B3C4D0000000000000043 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricFloatLiveActivity.swift; sourceTree = "<group>"; };
+        1A2B3C4D0000000000000044 = { isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+        1A2B3C4D0000000000000045 = {
+            isa = PBXSourcesBuildPhase;
+            buildActionMask = 2147483647;
+            files = (
+                1A2B3C4D0000000000000051,
+                1A2B3C4D0000000000000052,
+                1A2B3C4D0000000000000053,
+                1A2B3C4D0000000000000054,
+            );
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        1A2B3C4D0000000000000046 = {
+            isa = XCConfigurationList;
+            buildConfigurations = (1A2B3C4D0000000000000047, 1A2B3C4D0000000000000048);
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = Release;
+        };
+        1A2B3C4D0000000000000047 = {
+            isa = XCBuildConfiguration;
+            baseConfigurationReference = 1A2B3C4D0000000000000055;
+            buildSettings = {};
+            name = Debug;
+        };
+        1A2B3C4D0000000000000048 = {
+            isa = XCBuildConfiguration;
+            baseConfigurationReference = 1A2B3C4D0000000000000055;
+            buildSettings = {};
+            name = Release;
+        };
+        1A2B3C4D0000000000000049 = {
+            isa = PBXCopyFilesBuildPhase;
+            buildActionMask = 2147483647;
+            dstPath = "";
+            dstSubfolderSpec = 13;
+            files = (1A2B3C4D000000000000004A);
+            name = "Embed App Extensions";
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+        1A2B3C4D000000000000004A = {
+            isa = PBXBuildFile;
+            fileRef = 1A2B3C4D0000000000000042;
+            settings = { ATTRIBUTES = (RemoveHeadersOnCopy); };
+        };
+        1A2B3C4D000000000000004B = {
+            isa = PBXTargetDependency;
+            target = 1A2B3C4D0000000000000040;
+            targetProxy = 1A2B3C4D000000000000004C;
+        };
+        1A2B3C4D000000000000004C = {
+            isa = PBXContainerItemProxy;
+            containerPortal = 1A2B3C4D0000000000000001;
+            proxyType = 1;
+            remoteGlobalIDString = 1A2B3C4D0000000000000040;
+            remoteInfo = LyricFloatLiveActivity;
+        };
+        1A2B3C4D000000000000004D = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricActivityAttributes.swift; sourceTree = "<group>"; };
+        1A2B3C4D000000000000004E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricLiveActivity.swift; sourceTree = "<group>"; };
+        1A2B3C4D000000000000004F = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000004D; };
+        1A2B3C4D0000000000000050 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000004E; };
+        1A2B3C4D0000000000000051 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000043; };
+        1A2B3C4D0000000000000052 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000004D; };
+        1A2B3C4D0000000000000053 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001A; };
+        1A2B3C4D0000000000000054 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001D; };
+        1A2B3C4D0000000000000055 = { isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LiveActivity.xcconfig; sourceTree = "<group>"; };
     };
     rootObject = 1A2B3C4D0000000000000001;
 }

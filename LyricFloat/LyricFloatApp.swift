@@ -38,7 +38,7 @@ private struct OverlayView: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(model.currentLine)
 
-                FloatingControls(model: model, player: model.player, theme: theme)
+                FloatingControls(model: model, player: model.player, liveActivity: model.liveActivity, theme: theme)
             }
             .padding(.horizontal, 22)
             .padding(.vertical, 18)
@@ -142,6 +142,7 @@ private struct OverlayView: View {
 private struct FloatingControls: View {
     @ObservedObject var model: OverlayModel
     @ObservedObject var player: FloatingPlayer
+    @ObservedObject var liveActivity: LyricLiveActivity
     let theme: LyricTheme
 
     var body: some View {
@@ -179,6 +180,23 @@ private struct FloatingControls: View {
                     .foregroundStyle(theme.secondary)
             } else if let error = player.errorMessage {
                 Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(theme.secondary)
+            }
+
+            Button(action: model.toggleLockScreenLyrics) {
+                Label(liveActivity.isActive ? "Remove from Lock Screen" : "Show on Lock Screen",
+                      systemImage: liveActivity.isActive ? "iphone.slash" : "lock.iphone")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .background(theme.surface, in: RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+            .disabled(!liveActivity.isActive && (!model.hasLyrics || model.spotifyStatus != nil))
+            .opacity(liveActivity.isActive || (model.hasLyrics && model.spotifyStatus == nil) ? 1 : 0.45)
+
+            if let message = liveActivity.message {
+                Text(message)
                     .font(.footnote)
                     .foregroundStyle(theme.secondary)
             }

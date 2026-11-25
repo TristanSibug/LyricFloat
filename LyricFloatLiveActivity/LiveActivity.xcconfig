@@ -1,0 +1,13 @@
+#include "../LyricFloat/App.xcconfig"
+
+APPLICATION_EXTENSION_API_ONLY = YES
+ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES =
+ASSETCATALOG_COMPILER_APPICON_NAME =
+INFOPLIST_FILE = LyricFloatLiveActivity/Info.plist
+INFOPLIST_KEY_CFBundleDisplayName = Lyric Float
+INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../../Frameworks
+OTHER_LDFLAGS = $(inherited)
+PRODUCT_BUNDLE_IDENTIFIER = app.lyricfloat.remote.liveactivity
+PRODUCT_NAME = LyricFloatLiveActivity
+SKIP_INSTALL = YES
