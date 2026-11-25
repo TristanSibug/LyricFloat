@@ -12,13 +12,13 @@ Open the Spotify Dashboard registration used by the IPA. In **Settings**, enable
 2. Open **Lyric Float Remote** and tap **Connect Spotify**. Approve the request in Spotify. Check whether the track and lyrics appear or note the error shown.
 3. Tap **Float lyrics** and go back to Spotify. Pause, seek, and skip to a different song with timed lyrics. Check whether the floating window responds before reopening Lyric Float Remote.
 
-The build checks playback every three seconds and keeps App Remote active during Picture in Picture for this test. Spotify recommends disconnecting when the app becomes inactive, so report any frozen lyrics or connection errors during the test. Tap **Connect Spotify** after a fresh app launch. [Spotify App Remote lifecycle](https://developer.spotify.com/documentation/ios/concepts/application-lifecycle)
+The build checks playback every three seconds and keeps App Remote active during Picture in Picture. After you connect, Lyric Float saves the authorization in the iPhone Keychain and tries to reconnect when you reopen the app. If Spotify needs permission again, start a song and tap **Connect Spotify**. **Disconnect Spotify** clears the saved connection. [Spotify App Remote lifecycle](https://developer.spotify.com/documentation/ios/concepts/application-lifecycle)
 
 ## Show lyrics on the Lock Screen
 
 While lyrics are visible in the app, tap **Show on Lock Screen**. The Live Activity shows **Song title ⋅ Artist Name** above the current line and uses your lyric font and theme. Tap **Remove from Lock Screen** in Lyric Float to end it.
 
-Use a sideloading tool that keeps and signs the included app extension. If iOS suspends Lyric Float, the card will ask you to reopen it to refresh after about 15 seconds without new Spotify playback data. [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
+Use a sideloading tool that keeps and signs the included app extension. After about 15 seconds without fresh playback data, the card shows **Tap to refresh**. Tapping it opens Lyric Float and tries your saved Spotify connection. [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
 
 ## Build from source
 

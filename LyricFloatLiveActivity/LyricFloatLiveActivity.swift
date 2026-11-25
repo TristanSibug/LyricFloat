@@ -15,7 +15,7 @@ struct LyricFloatLiveActivity: Widget {
                     .foregroundStyle(theme.highlight)
                     .lineLimit(1)
                 if context.isStale {
-                    Text("Open Lyric Float to refresh")
+                    Text("Tap to refresh")
                         .font(.subheadline)
                         .foregroundStyle(theme.secondary)
                 } else {

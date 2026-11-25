@@ -88,7 +88,7 @@ private struct OverlayView: View {
                 if model.hasLyrics {
                     Button("Timing adjustment", systemImage: "clock") { panel = .timing }
                 }
-                if model.isSpotifyConnected {
+                if model.canDisconnectSpotify {
                     Button("Disconnect Spotify", systemImage: "link.badge.minus", role: .destructive,
                            action: model.disconnectSpotify)
                 }

@@ -23,6 +23,7 @@ final class OverlayModel: ObservableObject {
     @Published private(set) var spotifyStatus: String?
 
     var canConnectSpotify: Bool { spotify.isConfigured }
+    var canDisconnectSpotify: Bool { !isConnectingSpotify && (isSpotifyConnected || spotify.hasSavedConnection) }
     var hasLyrics: Bool { lyrics != nil }
 
     private var foreground = false
@@ -52,10 +53,14 @@ final class OverlayModel: ObservableObject {
     }
 
     func setSceneActive(_ active: Bool) {
+        let becomingActive = active && !foreground
         foreground = active
         updateSpotifyActivity()
         guard active else { return }
         update(forceFrame: true)
+        if becomingActive, spotify.hasSavedConnection {
+            Task { [weak self] in await self?.connectSpotify(restoring: true) }
+        }
     }
 
     func handleSpotifyCallback(_ url: URL) {
@@ -87,13 +92,13 @@ final class OverlayModel: ObservableObject {
         update(forceFrame: true)
     }
 
-    func connectSpotify() async {
+    func connectSpotify(restoring: Bool = false) async {
         guard !isConnectingSpotify, !isSpotifyConnected, canConnectSpotify else { return }
         isConnectingSpotify = true
         spotifyStatus = nil
         defer { isConnectingSpotify = false }
         do {
-            try await spotify.connect()
+            try await spotify.connect(restoring: restoring)
             isSpotifyConnected = true
             prepareSpotifyTimeline()
         } catch {
@@ -114,11 +119,16 @@ final class OverlayModel: ObservableObject {
     }
 
     func disconnectSpotify() {
+        do {
+            try spotify.disconnect()
+        } catch {
+            spotifyStatus = error.localizedDescription
+            return
+        }
         liveActivity.stop()
         isSpotifyConnected = false
         spotifyPoll?.cancel()
         spotifyPoll = nil
-        spotify.disconnect()
         lastPlaybackSample = nil
         setSpotifyTrack(nil)
         spotifyStatus = nil
@@ -293,7 +303,7 @@ final class OverlayModel: ObservableObject {
 
     private func render(current: String, next: String?, at now: TimeInterval, forceFrame: Bool) {
         if currentLine != current { currentLine = current }
-        if liveActivity.isActive {
+        if liveActivity.isActive, lastPlaybackSample != nil {
             liveActivity.publish(lockScreenState(line: current), lastPlaybackSample: lastPlaybackSample)
         }
         let changed = displayedFrame?.current != current || displayedFrame?.next != next
