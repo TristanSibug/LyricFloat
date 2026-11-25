@@ -3,24 +3,25 @@ import Combine
 import Foundation
 
 @MainActor
-final class LockedSongTest: ObservableObject {
-    private static let cardTitle = "Lyric Float"
+final class LockedLyricsSession: ObservableObject {
+    private static let duration: TimeInterval = 15 * 60
+    private static let playbackGracePeriod: TimeInterval = 30
 
     @Published private(set) var isActive = false
     @Published private(set) var message: String?
 
-    private struct SongRun {
+    private struct Run {
         let identifier: String
-        let track: SpotifyTrack
-        var line: String
-        var position: TimeInterval
+        let startedAt: TimeInterval
+        var lastPlayingAt: TimeInterval
+        var elapsedSeconds: Int64 = 0
     }
 
-    private var run: SongRun?
+    private var run: Run?
     private var task: BGTask?
 
     @available(iOS 26.0, *)
-    func start(track: SpotifyTrack, line: String, position: TimeInterval) {
+    func start(at now: TimeInterval) {
         guard run == nil else { return }
         let identifiers = Bundle.main.object(forInfoDictionaryKey: "BGTaskSchedulerPermittedIdentifiers") as? [String]
         guard let pattern = identifiers?.first(where: { $0.hasSuffix(".locked-song.*") }) else {
@@ -39,52 +40,48 @@ final class LockedSongTest: ObservableObject {
                 self.attach(task, identifier: identifier)
             }
         }) else {
-            message = "iOS couldn’t register the locked-lyrics test."
+            message = "iOS couldn’t register the background session."
             return
         }
 
-        let request = BGContinuedProcessingTaskRequest(identifier: identifier, title: Self.cardTitle, subtitle: line)
+        let request = BGContinuedProcessingTaskRequest(identifier: identifier, title: "Lyric Float", subtitle: "Syncing Lock Screen lyrics")
         request.strategy = .fail
-        run = SongRun(identifier: identifier, track: track, line: line, position: position)
+        run = Run(identifier: identifier, startedAt: now, lastPlayingAt: now)
         do {
             try scheduler.submit(request)
-            message = "Lock your iPhone to see whether the lyrics follow this song."
+            message = "Lock Screen sync is active for up to 15 minutes."
             isActive = true
         } catch {
             run = nil
-            message = "iOS couldn’t start the test (\((error as NSError).code))."
+            message = "iOS couldn’t start background sync (\((error as NSError).code))."
         }
     }
 
-    func update(trackID: String?, position: TimeInterval, playing: Bool, line: String, lastPlaybackSample: Date?) {
+    func update(playing: Bool, at now: TimeInterval) {
         guard var run else { return }
-        guard trackID == run.track.id else {
-            finish(success: false, message: "Test ended when the song changed.")
+        let elapsed = now - run.startedAt
+        if elapsed >= Self.duration {
+            finish(success: true, message: "The 15-minute Lock Screen sync session ended.")
             return
         }
-        if position >= run.track.duration {
-            finish(success: true, message: "Locked-lyrics test completed.")
-            return
-        }
-        guard playing, let lastPlaybackSample, Date().timeIntervalSince(lastPlaybackSample) < 15 else {
-            finish(success: false, message: "Test ended when playback paused or sync was interrupted.")
+        if playing {
+            run.lastPlayingAt = now
+        } else if now - run.lastPlayingAt >= Self.playbackGracePeriod {
+            finish(success: false, message: "Lock Screen sync ended after a pause or Spotify connection loss.")
             return
         }
 
-        let lineChanged = run.line != line
-        run.line = line
-        run.position = position
+        let elapsedSeconds = Int64(elapsed.rounded(.down))
+        let progressChanged = run.elapsedSeconds != elapsedSeconds
+        run.elapsedSeconds = elapsedSeconds
         self.run = run
-        if #available(iOS 26.0, *), let task = task as? BGContinuedProcessingTask {
-            let elapsed = Int64(max(0, position.rounded(.down)))
-            if task.progress.completedUnitCount != elapsed {
-                task.progress.completedUnitCount = elapsed
-            }
-            if lineChanged { task.updateTitle(Self.cardTitle, subtitle: line) }
+        if progressChanged, #available(iOS 26.0, *), let task = task as? BGContinuedProcessingTask {
+            task.progress.completedUnitCount = elapsedSeconds
         }
     }
 
     func stop() {
+        message = nil
         finish(success: false, message: nil)
     }
 
@@ -98,12 +95,11 @@ final class LockedSongTest: ObservableObject {
         task.expirationHandler = { [weak self] in
             Task { @MainActor in
                 guard let self, self.run?.identifier == identifier else { return }
-                self.finish(success: false, message: "iOS ended the locked-lyrics test.")
+                self.finish(success: false, message: "iOS ended background sync.")
             }
         }
-        task.progress.totalUnitCount = Int64(ceil(run.track.duration))
-        task.progress.completedUnitCount = Int64(max(0, run.position.rounded(.down)))
-        task.updateTitle(Self.cardTitle, subtitle: run.line)
+        task.progress.totalUnitCount = Int64(Self.duration)
+        task.progress.completedUnitCount = run.elapsedSeconds
     }
 
     private func finish(success: Bool, message: String?) {

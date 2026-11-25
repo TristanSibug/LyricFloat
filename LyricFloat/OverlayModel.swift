@@ -7,7 +7,7 @@ import UIKit
 final class OverlayModel: ObservableObject {
     let player = FloatingPlayer()
     let liveActivity = LyricLiveActivity()
-    let lockedSongTest = LockedSongTest()
+    let lockedLyrics = LockedLyricsSession()
     private let catalog = LyricsCatalog()
     private let spotify = Spotify()
 
@@ -26,7 +26,7 @@ final class OverlayModel: ObservableObject {
     var canConnectSpotify: Bool { spotify.isConfigured }
     var canDisconnectSpotify: Bool { !isConnectingSpotify && (isSpotifyConnected || spotify.hasSavedConnection) }
     var hasLyrics: Bool { lyrics != nil }
-    var canTestLockedLyrics: Bool { hasLyrics && startedAt != nil && spotifyStatus == nil }
+    var canShowLockScreenLyrics: Bool { hasLyrics && isSpotifyConnected && spotifyStatus == nil }
 
     private var foreground = false
     private var playbackDisplayObservation: AnyCancellable?
@@ -47,10 +47,14 @@ final class OverlayModel: ObservableObject {
 
     init() {
         playbackDisplayObservation = player.$isActive
-            .combineLatest(player.$isStarting, liveActivity.$isActive, lockedSongTest.$isActive)
+            .combineLatest(player.$isStarting, liveActivity.$isActive)
             .dropFirst()
             .sink { [weak self] _ in
-                Task { @MainActor [weak self] in self?.updateSpotifyActivity() }
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    if self.lockedLyrics.isActive && !self.liveActivity.isActive { self.lockedLyrics.stop() }
+                    self.updateSpotifyActivity()
+                }
             }
     }
 
@@ -71,20 +75,13 @@ final class OverlayModel: ObservableObject {
 
     func toggleLockScreenLyrics() {
         if liveActivity.isActive {
+            lockedLyrics.stop()
             liveActivity.stop()
-        } else if hasLyrics, isSpotifyConnected, spotifyStatus == nil {
+        } else if canShowLockScreenLyrics {
             liveActivity.start(lockScreenState(line: currentLine), lastPlaybackSample: lastPlaybackSample)
-        }
-    }
-
-    @available(iOS 26.0, *)
-    func toggleLockedSongTest() {
-        if lockedSongTest.isActive {
-            lockedSongTest.stop()
-        } else if canTestLockedLyrics, let spotifyTrack {
-            let line = String(decoding: currentLine.utf8.prefix(400), as: UTF8.self)
-            lockedSongTest.start(track: spotifyTrack, line: line, position: position)
-            if lockedSongTest.isActive { liveActivity.stop() }
+            if #available(iOS 26.0, *), liveActivity.isActive {
+                lockedLyrics.start(at: CACurrentMediaTime())
+            }
         }
     }
 
@@ -139,7 +136,7 @@ final class OverlayModel: ObservableObject {
             return
         }
         liveActivity.stop()
-        lockedSongTest.stop()
+        lockedLyrics.stop()
         isSpotifyConnected = false
         spotifyPoll?.cancel()
         spotifyPoll = nil
@@ -157,7 +154,7 @@ final class OverlayModel: ObservableObject {
     }
 
     private var showingLyrics: Bool {
-        player.isActive || player.isStarting || liveActivity.isActive || lockedSongTest.isActive
+        player.isActive || player.isStarting || liveActivity.isActive
     }
 
     private var shouldPoll: Bool {
@@ -317,9 +314,9 @@ final class OverlayModel: ObservableObject {
 
     private func render(current: String, next: String?, at now: TimeInterval, forceFrame: Bool) {
         if currentLine != current { currentLine = current }
-        if lockedSongTest.isActive {
-            lockedSongTest.update(trackID: spotifyTrack?.id, position: position, playing: startedAt != nil,
-                                  line: current, lastPlaybackSample: lastPlaybackSample)
+        if lockedLyrics.isActive {
+            let sampleIsFresh = lastPlaybackSample.map { Date().timeIntervalSince($0) < 15 } ?? false
+            lockedLyrics.update(playing: startedAt != nil && sampleIsFresh, at: now)
         }
         if liveActivity.isActive, lastPlaybackSample != nil {
             liveActivity.publish(lockScreenState(line: current), lastPlaybackSample: lastPlaybackSample)

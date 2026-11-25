@@ -295,7 +295,7 @@
         1A2B3C4D0000000000000053 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001A; };
         1A2B3C4D0000000000000054 = { isa = PBXBuildFile; fileRef = 1A2B3C4D000000000000001D; };
         1A2B3C4D0000000000000055 = { isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = LiveActivity.xcconfig; sourceTree = "<group>"; };
-        1A2B3C4D0000000000000056 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedSongTest.swift; sourceTree = "<group>"; };
+        1A2B3C4D0000000000000056 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedLyricsSession.swift; sourceTree = "<group>"; };
         1A2B3C4D0000000000000057 = { isa = PBXBuildFile; fileRef = 1A2B3C4D0000000000000056; };
     };
     rootObject = 1A2B3C4D0000000000000001;

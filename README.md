@@ -16,13 +16,13 @@ The build checks playback every three seconds and keeps App Remote active during
 
 ## Show lyrics on the Lock Screen
 
-While lyrics are visible in the app, tap **Show on Lock Screen**. The Live Activity shows **Song title ⋅ Artist Name** above the current line and uses your lyric font and theme. Tap **Remove from Lock Screen** in Lyric Float to end it.
+While lyrics are visible in the app, tap **Show on Lock Screen**. The lyrics card uses your selected font and theme. Spotify’s player already shows the song and artist. Tap **Remove from Lock Screen** in Lyric Float to end the session.
 
 Use a sideloading tool that keeps and signs the included app extension. After about 15 seconds without fresh playback data, the card shows **Tap to refresh**. Tapping it opens Lyric Float and tries your saved Spotify connection. [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities)
 
-## Build from source
+On iOS 26, **Show on Lock Screen** also starts a background sync session for up to 15 minutes. To test it, lock your iPhone and let the current song finish or skip it from Spotify’s Lock Screen controls. The lyrics card looks up timed lyrics for each new song. iOS may show a separate **Lyric Float** progress card. A pause or connection loss of about 30 seconds can end sync, and iOS can end the task early. [Apple continued processing](https://developer.apple.com/documentation/backgroundtasks/performing-long-running-tasks-on-ios-and-ipados)
 
-The **Test Locked Lyrics** button in this experimental build uses iOS 26’s continued processing API. It starts while a song is playing and shows the current line under **Lyric Float** in the system’s progress Live Activity. iOS sets the font for that card. Lock your iPhone to follow the rest of the song. A pause, track change, sync interruption, or iOS cancellation ends the test. [Apple continued processing](https://developer.apple.com/documentation/backgroundtasks/performing-long-running-tasks-on-ios-and-ipados)
+## Build from source
 
 Open `LyricFloat.xcodeproj` in Xcode. The project pins Spotify’s iOS SDK at 5.0.1 via Swift Package Manager. Set `SPOTIFY_CLIENT_ID` to the public ID of the configured Spotify app, then choose an iPhone target.
 

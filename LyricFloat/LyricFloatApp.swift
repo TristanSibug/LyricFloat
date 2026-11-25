@@ -39,7 +39,7 @@ private struct OverlayView: View {
                     .accessibilityLabel(model.currentLine)
 
                 FloatingControls(model: model, player: model.player, liveActivity: model.liveActivity,
-                                 lockedSongTest: model.lockedSongTest, theme: theme)
+                                 lockedLyrics: model.lockedLyrics, theme: theme)
             }
             .padding(.horizontal, 22)
             .padding(.vertical, 18)
@@ -144,7 +144,7 @@ private struct FloatingControls: View {
     @ObservedObject var model: OverlayModel
     @ObservedObject var player: FloatingPlayer
     @ObservedObject var liveActivity: LyricLiveActivity
-    @ObservedObject var lockedSongTest: LockedSongTest
+    @ObservedObject var lockedLyrics: LockedLyricsSession
     let theme: LyricTheme
 
     var body: some View {
@@ -194,26 +194,13 @@ private struct FloatingControls: View {
                     .background(theme.surface, in: RoundedRectangle(cornerRadius: 16))
             }
             .buttonStyle(.plain)
-            .disabled(!liveActivity.isActive && (!model.hasLyrics || model.spotifyStatus != nil))
-            .opacity(liveActivity.isActive || (model.hasLyrics && model.spotifyStatus == nil) ? 1 : 0.45)
+            .disabled(!liveActivity.isActive && !model.canShowLockScreenLyrics)
+            .opacity(liveActivity.isActive || model.canShowLockScreenLyrics ? 1 : 0.45)
 
-            if let message = liveActivity.message {
+            if let message = liveActivity.message ?? lockedLyrics.message {
                 Text(message)
                     .font(.footnote)
                     .foregroundStyle(theme.secondary)
-            }
-            if #available(iOS 26.0, *) {
-                Button(action: model.toggleLockedSongTest) {
-                    Label(lockedSongTest.isActive ? "Stop Locked Lyrics Test" : "Test Locked Lyrics",
-                          systemImage: "lock.iphone")
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .disabled(!lockedSongTest.isActive && !model.canTestLockedLyrics)
-                if let message = lockedSongTest.message {
-                    Text(message)
-                        .font(.footnote)
-                        .foregroundStyle(theme.secondary)
-                }
             }
         }
     }

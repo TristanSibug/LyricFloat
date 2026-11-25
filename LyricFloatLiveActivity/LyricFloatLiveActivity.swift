@@ -9,11 +9,7 @@ struct LyricFloatLiveActivity: Widget {
             let theme = LyricTheme.find(context.state.themeID)
             let font = LyricFont(rawValue: context.state.fontID) ?? .system
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(context.state.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(theme.highlight)
-                    .lineLimit(1)
+            Group {
                 if context.isStale {
                     Text("Tap to refresh")
                         .font(.subheadline)
@@ -23,9 +19,11 @@ struct LyricFloatLiveActivity: Widget {
                         .font(Font(font.uiFont(size: 20, weight: .semibold)))
                         .foregroundStyle(theme.foreground)
                         .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .activityBackgroundTint(theme.surface)
             .activitySystemActionForegroundColor(theme.foreground)
